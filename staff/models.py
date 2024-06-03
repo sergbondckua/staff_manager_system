@@ -3,17 +3,18 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-
-def generate_path(instance: "Employee", filename: str) -> str:
-    """Function to generate path for photo upload."""
-    return f"photos/{instance.username}/{filename}"
+from staff.service import generate_path
 
 
 class Employee(AbstractUser):
     """Custom staff user model."""
 
     job_title = models.CharField(verbose_name=_("Job Title"), max_length=50)
-    date_of_birth = models.DateField(verbose_name=_("Date of birth"))
+    date_of_birth = models.DateField(
+        verbose_name=_("Date of birth"),
+        blank=True,
+        null=True,
+    )
     phone_regex = RegexValidator(
         regex=r"^\+?1?\d{9,13}$",
         message=_(
@@ -25,16 +26,21 @@ class Employee(AbstractUser):
         validators=[phone_regex],
         max_length=13,
         unique=True,
+        blank=True,
+        null=True,
     )
     telegram_id = models.PositiveIntegerField(
-        verbose_name=_("Telegram id"), unique=True
+        verbose_name=_("Telegram id"),
+        unique=True,
+        blank=True,
+        null=True,
     )
     photo = models.ImageField(
         verbose_name=_("Photo"),
-        upload_to=generate_path,
         blank=True,
         null=True,
         default=None,
+        upload_to=generate_path,
         help_text=_("Upload image: (PNG, JPEG, JPG)"),
     )
     is_active = models.BooleanField(verbose_name=_("Active"), default=True)

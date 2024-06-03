@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     #  My custom apps
     "staff.apps.StaffConfig",
     #  Installed apps
+    "django_cleanup.apps.CleanupConfig",
 ]
 
 MIDDLEWARE = [

@@ -1,13 +1,10 @@
-from pathlib import Path
-
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe, SafeString
 from django.utils.translation import gettext_lazy as _
 
-from common.admin import BaseAdmin
-from staff.models import Employee, VacationUsed
+from staff.models import Employee
 
 
 @admin.register(Employee)
@@ -71,28 +68,3 @@ class EmployeeAdmin(UserAdmin):
         )
 
     display_thumbnail.short_description = _("Avatar")
-
-
-@admin.register(VacationUsed)
-class VacationUsedAdmin(BaseAdmin):
-    """This admin is used to manage the installation of Vacation"""
-
-    list_display = (
-        "employee_id",
-        "days",
-    )
-    list_filter = ("days",)
-    search_fields = ("employee_id",)
-    save_on_top = True
-    save_as = True
-    fieldsets = (
-        (
-            _("Information"),
-            {
-                "fields": (
-                    "employee_id",
-                    "days",
-                )
-            },
-        ),
-    ) + BaseAdmin.fieldsets

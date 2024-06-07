@@ -6,7 +6,6 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from common.models import BaseModel
 from staff.service import generate_path
 
 
@@ -68,29 +67,3 @@ class Employee(AbstractUser):
         ordering = ("username",)
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
-
-
-class VacationUsed(BaseModel):
-    """Counting vacation days used."""
-
-    employee_id = models.ForeignKey(
-        Employee,
-        verbose_name=_("Employee"),
-        related_name="vacation_days",
-        on_delete=models.CASCADE,
-    )
-    days = models.PositiveSmallIntegerField(
-        verbose_name=_("Days used"),
-        default=0,
-    )
-
-    def __str__(self):
-        return (
-            f"{self.employee_id.first_name} {self.employee_id.last_name}: "
-            f"{self.days} {_('days')}"
-        )
-
-    class Meta:
-        ordering = ("days",)
-        verbose_name = _("Vacation used by day")
-        verbose_name_plural = _("Vacation used by days")

@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     #  My custom apps
     "staff.apps.StaffConfig",
+    "vacation.apps.VacationConfig",
     #  Installed apps
     "django_cleanup.apps.CleanupConfig",
 ]

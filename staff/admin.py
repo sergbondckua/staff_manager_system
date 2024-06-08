@@ -56,15 +56,9 @@ class EmployeeAdmin(UserAdmin):
 
     def display_thumbnail(self, obj: Employee) -> SafeString:
         """View image for admin"""
-        default_photo_path = (
-            settings.MEDIA_URL + "staff_photos/no_photo/no_photo.png"
-        )
+        default_photo_path = settings.MEDIA_URL + "staff_photos/no_photo/no_photo.png"
         if obj.photo:
-            return mark_safe(
-                f"<img src='{obj.photo.url}' width='40' height='40'>"
-            )
-        return mark_safe(
-            f"<img src='{default_photo_path}' width='40' height='40'>"
-        )
+            return mark_safe(f"<img src='{obj.photo.url}' width='40' height='40'>")
+        return mark_safe(f"<img src='{default_photo_path}' width='40' height='40'>")
 
     display_thumbnail.short_description = _("Avatar")

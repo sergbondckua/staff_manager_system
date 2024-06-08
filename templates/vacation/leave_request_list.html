@@ -6,7 +6,7 @@
     {% for leave_request in leave_requests %}
       <li>
         <a href="{% url 'vacation:leave_request_detail' leave_request.pk %}">
-          {{ leave_request.start_date }}: {{ leave_request.number_of_days }} {{ leave_request.reason }} {{ leave_request.status }}
+          #{{ leave_request.id }} {{ leave_request.start_date }}: {{ leave_request.number_of_days }} {{ leave_request.reason }} {{ leave_request.status }}
         </a>
       </li>
     {% endfor %}

@@ -1,0 +1,10 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h2>Видалити заявку на відпустку</h2>
+  <p>Ви впевнені, що хочете видалити заявку на відпустку для {{ leave_request.employee }}?</p>
+  <form method="post">{% csrf_token %}
+    <button type="submit">Так, видалити</button>
+    <a href="{% url 'leave_request_detail' leave_request.pk %}">Скасувати</a>
+  </form>
+{% endblock %}

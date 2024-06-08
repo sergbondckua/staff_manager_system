@@ -14,11 +14,10 @@ class LeaveRequestForm(forms.ModelForm):
             "end_date",
         ]
         widgets = {
-            "employee": forms.TextInput(
+            "employee": forms.RadioSelect(
                 attrs={
-                    "readonly": "readonly",
-                    "type": "hidden",
-                    "required": "False",
+                    "checked": "checked",
+                    "required": "True",
                 }
             ),
             "start_date": forms.SelectDateWidget(attrs={"required": "True"}),
@@ -32,9 +31,7 @@ class LeaveRequestForm(forms.ModelForm):
         end_date = self.cleaned_data.get("end_date")
 
         if end_date and start_date and end_date < start_date:
-            raise forms.ValidationError(
-                "End date cannot be earlier than start date"
-            )
+            raise forms.ValidationError("End date cannot be earlier than start date")
 
         return end_date
 

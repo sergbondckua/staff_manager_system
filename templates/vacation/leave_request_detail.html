@@ -1,0 +1,17 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h2>Деталі заявки на відпустку</h2>
+  <p>Працівник: {{ leave_request.employee.first_name }} {{ leave_request.employee.last_name }}</p>
+  <p>Посада: {{ leave_request.employee.job_title }}</p>
+  <p>Причина: {{ leave_request.reason }}</p>
+  <p>Початкова дата відпустки: {{ leave_request.start_date }}</p>
+  <p>Кінцева дата відпустки: {{ leave_request.end_date }}</p>
+  <p>Кількість днів: {{ leave_request.number_of_days }}</p>
+  <p>Статус: {{ leave_request.status }}</p>
+  <a href="{% url 'vacation:leave_request_update' leave_request.pk %}">Редагувати</a>
+  <form action="{% url 'vacation:leave_request_delete' leave_request.pk %}" method="post">{% csrf_token %}
+    <input type="submit" value="Видалити">
+  </form>
+  <a href="{% url 'vacation:leave_request_list' %}">Повернутися до списку</a>
+{% endblock %}

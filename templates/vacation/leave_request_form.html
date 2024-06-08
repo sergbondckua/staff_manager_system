@@ -1,0 +1,15 @@
+{% extends "base_generic.html" %}
+
+{% block content %}
+  <h2>{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h2>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+{#    {{ employee_full_name }}#}
+{#    {{ form.reason }}#}
+{#    {{ form.start_date }}#}
+{#    {{ form.end_date }}#}
+    <button type="submit">Зберегти</button>
+  </form>
+  <a href="{% url 'vacation:leave_request_list' %}">Повернутися до списку</a>
+{% endblock %}

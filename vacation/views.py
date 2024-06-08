@@ -18,39 +18,45 @@ from .forms import LeaveRequestForm
 
 
 class LeaveRequestListView(LoginRequiredMixin, ListView):
-    """Представлення для відображення списку заявок на відпустку."""
+    """A view for displaying a list of leave requests."""
 
     model = LeaveRequest
     template_name = "vacation/leave_request_list.html"
     context_object_name = "leave_requests"
 
     def get_queryset(self):
-        """Повертає список заявок тільки для поточного користувача."""
+        # Returns a list of applications for the current user only.
         return LeaveRequest.objects.filter(employee=self.request.user)
 
 
 class LeaveRequestDetailView(LoginRequiredMixin, DetailView):
-    """Представлення для відображення деталей окремої заявки на відпустку."""
+    """A representation to display the details of an individual leave request."""
 
     model = LeaveRequest
     template_name = "vacation/leave_request_detail.html"
     context_object_name = "leave_request"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["pending"] = StatusRequestChoices.PENDING
+        return context
+
     def get_queryset(self):
-        """Переконується, що користувач може бачити тільки свої заявки."""
+        # Makes sure that the user can see only his applications.
         return LeaveRequest.objects.filter(employee=self.request.user)
 
 
 class LeaveRequestCreateView(LoginRequiredMixin, CreateView):
-    """Представлення для створення нової заявки на відпустку."""
+    """Presentation for creating a new leave request."""
 
     model = LeaveRequest
+    context_object_name = "leave_request"
     form_class = LeaveRequestForm
     template_name = "vacation/leave_request_form.html"
     success_url = reverse_lazy("vacation:leave_request_list")
 
     def form_valid(self, form):
-        """Встановлює поточного користувача як автора заявки."""
+        # Sets the current user as the submitter.
         form.instance.employee = self.request.user
         return super().form_valid(form)
 
@@ -61,11 +67,11 @@ class LeaveRequestUpdateView(
     """Editing an existing leave request."""
 
     model = LeaveRequest
+    context_object_name = "leave_request"
     form_class = LeaveRequestForm
     template_name = "vacation/leave_request_form.html"
     success_message = _("Your changes have been successfully saved.")
     success_url = reverse_lazy("vacation:leave_request_list")
-
 
     def get_queryset(self):
         # Makes sure that the user can only edit their applications.
@@ -88,15 +94,15 @@ class LeaveRequestUpdateView(
 
 
 class LeaveRequestDeleteView(LoginRequiredMixin, DeleteView):
-    """Представлення для видалення заявки на відпустку."""
+    """Submission to delete leave application."""
 
     model = LeaveRequest
+    context_object_name = "leave_request"
     template_name = "vacation/leave_request_confirm_delete.html"
-    success_message = _("Your leave request has been successfully deleted.")
     success_url = reverse_lazy("vacation:leave_request_list")
 
     def get_queryset(self):
-        """Переконується, що користувач може видаляти тільки свої заявки."""
+        # Makes sure that the user can only delete their applications.
         return LeaveRequest.objects.filter(employee=self.request.user)
 
     def dispatch(self, request, *args, **kwargs):

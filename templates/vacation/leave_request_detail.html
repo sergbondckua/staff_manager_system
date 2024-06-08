@@ -9,9 +9,10 @@
   <p>Кінцева дата відпустки: {{ leave_request.end_date }}</p>
   <p>Кількість днів: {{ leave_request.number_of_days }}</p>
   <p>Статус: {{ leave_request.status }}</p>
-  <a href="{% url 'vacation:leave_request_update' leave_request.pk %}">Редагувати</a>
-  <form action="{% url 'vacation:leave_request_delete' leave_request.pk %}" method="post">{% csrf_token %}
-    <input type="submit" value="Видалити">
-  </form>
+
+  {% if leave_request.status == pending %}
+    <a href="{% url 'vacation:leave_request_update' leave_request.pk %}">Редагувати</a>
+    <a href="{% url 'vacation:leave_request_delete' leave_request.pk %}">Видалити</a>
+  {% endif %}
   <a href="{% url 'vacation:leave_request_list' %}">Повернутися до списку</a>
 {% endblock %}

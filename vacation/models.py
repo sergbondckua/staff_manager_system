@@ -65,7 +65,7 @@ class LeaveRequest(BaseModel):
         Model validation method.
         Ensures the end date is not earlier than the start date.
         """
-        if self.end_date < self.start_date:
+        if self.end_date <= self.start_date:
             raise ValidationError(_("End date cannot be earlier than start date"))
 
     def calculate_number_of_days(self):

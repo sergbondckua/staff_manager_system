@@ -1,5 +1,6 @@
 from django import forms
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from common.enums import UKRAINIAN_MONTHS
 from .models import LeaveRequest, LeaveType
@@ -38,7 +39,7 @@ class LeaveRequestForm(forms.ModelForm):
         queryset=LeaveType.objects.all(),
         required=True,
         widget=forms.Select,
-        label="Type",
+        label=_("Reason"),
     )
 
     class Meta:

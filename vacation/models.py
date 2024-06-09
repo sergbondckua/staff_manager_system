@@ -118,7 +118,11 @@ class LeaveType(BaseModel):
         verbose_name_plural = _("Leave types")
 
     def __str__(self):
-        return str(self.title) if self.parent is None else f"{self.parent} -> {self.title}"
+        return (
+            str(self.title)
+            if self.parent is None
+            else f"{self.parent} - {self.title}"
+        )
 
     def get_subtype(self):
         return self.subtypes.all()
@@ -126,14 +130,10 @@ class LeaveType(BaseModel):
 
 @receiver(post_migrate)
 def create_default_leave_type(sender, **kwargs):
-    if (
-            sender.name == "vacation"
-    ):  # Creating leave type for 'vacation'
+    if sender.name == "vacation":  # Creating leave type for 'vacation'
         annual, _ = LeaveType.objects.get_or_create(
             title="Annual", parent=None
         )
-        sick, _ = LeaveType.objects.get_or_create(
-            title="Sick", parent=None
-        )
+        sick, _ = LeaveType.objects.get_or_create(title="Sick", parent=None)
         LeaveType.objects.get_or_create(title="Home", parent=sick)
         LeaveType.objects.get_or_create(title="Hospital", parent=sick)

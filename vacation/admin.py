@@ -9,14 +9,25 @@ from vacation.models import LeaveRequest, VacationUsed, LeaveType
 class VacationUsedAdmin(BaseAdmin):
     """This admin is used to manage the installation of Vacation"""
 
+    def has_add_permission(self, request):
+        """Disable the ability to add new entries"""
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        """Disable the ability to change"""
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Disable the ability to delete"""
+        return False
+
     list_display = (
         "employee",
         "days",
     )
-    list_filter = ("employee", "days")
+    list_filter = ("employee",)
     search_fields = ("employee",)
-    save_on_top = True
-    save_as = True
+    readonly_fields = ("employee", "days")
     fieldsets = (
         (
             _("Information"),
@@ -27,7 +38,7 @@ class VacationUsedAdmin(BaseAdmin):
                 )
             },
         ),
-    ) + BaseAdmin.fieldsets
+    )
 
 
 @admin.register(LeaveRequest)

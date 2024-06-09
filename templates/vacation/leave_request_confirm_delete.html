@@ -2,7 +2,7 @@
 
 {% block content %}
   <h2>Видалити заявку на відпустку</h2>
-  <p>Ви впевнені, що хочете видалити заявку {{ leave_request.pk }} на відпустку для {{ leave_request.employee }}?</p>
+  <p>Ви впевнені, що хочете видалити заявку #{{ leave_request.pk }} на відпустку від {{ leave_request.start_date }}?</p>
   <form method="post">
     {% csrf_token %}
     <button type="submit">Так, видалити</button>

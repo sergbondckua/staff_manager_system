@@ -1,10 +1,15 @@
 {% extends "base_generic.html" %}
 
 {% block content %}
-  <h2>Деталі заявки на відпустку</h2>
+  <h2>Деталі заявки на відпустку #{{ leave_request.pk }}</h2>
   <p>Працівник: {{ leave_request.employee.first_name }} {{ leave_request.employee.last_name }}</p>
   <p>Посада: {{ leave_request.employee.job_title }}</p>
-  <p>Причина: {{ leave_request.reason }}</p>
+  <p>Підстава:
+    {% if leave_request.leave_type.parent %}
+      {{ leave_request.leave_type.parent }}({{ leave_request.leave_type.title }})
+    {% else %}
+      {{ leave_request.leave_type.title }}
+    {% endif %}</p>
   <p>Початкова дата відпустки: {{ leave_request.start_date }}</p>
   <p>Кінцева дата відпустки: {{ leave_request.end_date }}</p>
   <p>Кількість днів: {{ leave_request.number_of_days }}</p>

@@ -13,8 +13,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 
 from common.enums import StatusRequestChoices
-from .models import LeaveRequest
-from .forms import LeaveRequestForm
+from vacation.models import LeaveRequest
+from vacation.forms import LeaveRequestForm
 
 
 class LeaveRequestListView(LoginRequiredMixin, ListView):

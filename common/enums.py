@@ -10,13 +10,6 @@ class StatusRequestChoices(models.TextChoices):
     REJECTED = "rejected", _("Rejected")
 
 
-class ReasonRequestChoices(models.TextChoices):
-    """Reasons choices for a request."""
-
-    VACATION = "vacation", _("Planned vacation")
-    SICK = "sick", _("Outpatient treatment")
-    HOSPITAL = "hospital", _("Treatment with hospitalization")
-
 UKRAINIAN_MONTHS = {
     1: "Січень",
     2: "Лютий",

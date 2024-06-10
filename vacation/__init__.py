@@ -1,1 +1,1 @@
-default_app_config = "vacation.VacationConfig"
+default_app_config = "vacation.apps.VacationConfig"

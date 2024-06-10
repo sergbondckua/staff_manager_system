@@ -1,7 +1,5 @@
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models.signals import post_migrate
-from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 
 from common.enums import StatusRequestChoices
@@ -82,15 +80,6 @@ class LeaveRequest(BaseModel):
         """Calculates the number of days."""
         self.number_of_days = (self.end_date - self.start_date).days
 
-    def get_change_status(self):
-        """Changes the status of request."""
-        if self.status == StatusRequestChoices.APPROVED:
-            vacation_record, _ = VacationUsed.objects.get_or_create(
-                employee=self.employee
-            )
-            vacation_record.days += self.number_of_days
-            vacation_record.save()
-
     def submit_for_approval(self):
         # TODO: Логіка для відправки на погодження
         self.status = StatusRequestChoices.PENDING
@@ -101,7 +90,6 @@ class LeaveRequest(BaseModel):
         self.clean()
         self.calculate_number_of_days()
         super().save(*args, **kwargs)
-        self.get_change_status()
 
     def __str__(self):
         return (
@@ -114,6 +102,8 @@ class LeaveRequest(BaseModel):
 
 
 class LeaveType(BaseModel):
+    """The type of request to leave."""
+
     title = models.CharField(max_length=150, unique=True)
     parent = models.ForeignKey(
         "self",
@@ -137,14 +127,3 @@ class LeaveType(BaseModel):
 
     def get_subtype(self):
         return self.subtypes.all()
-
-
-@receiver(post_migrate)
-def create_default_leave_type(sender, **kwargs):
-    if sender.name == "vacation":  # Creating leave type for 'vacation'
-        annual, _ = LeaveType.objects.get_or_create(
-            title="Annual", parent=None
-        )
-        sick, _ = LeaveType.objects.get_or_create(title="Sick", parent=None)
-        LeaveType.objects.get_or_create(title="Home", parent=sick)
-        LeaveType.objects.get_or_create(title="Hospital", parent=sick)

@@ -6,4 +6,4 @@ class VacationConfig(AppConfig):
     name = "vacation"
 
     def ready(self):
-        import vacation.models  # Ensure the signal is imported
+        import vacation.signals  # Ensure the signal is imported

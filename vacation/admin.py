@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
 from common.admin import BaseAdmin
+from common.enums import StatusRequestChoices
 from vacation.models import LeaveRequest, VacationUsed, LeaveType
 
 
@@ -17,9 +18,9 @@ class VacationUsedAdmin(BaseAdmin):
         """Disable the ability to change"""
         return False
 
-    def has_delete_permission(self, request, obj=None):
-        """Disable the ability to delete"""
-        return False
+    # def has_delete_permission(self, request, obj=None):
+    #     """Disable the ability to delete"""
+    #     return False
 
     list_display = (
         "employee",
@@ -45,6 +46,12 @@ class VacationUsedAdmin(BaseAdmin):
 class LeaveRequestAdmin(BaseAdmin):
     """Admin interface for leave requests."""
 
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj=obj)
+        if obj and obj.status == StatusRequestChoices.APPROVED:
+            readonly_fields += ("status",)
+        return readonly_fields
+
     list_display = (
         "employee",
         "leave_type",
@@ -54,7 +61,6 @@ class LeaveRequestAdmin(BaseAdmin):
     )
     list_display_links = ("employee",)
     list_filter = ("employee", "status", "start_date", "end_date")
-    list_editable = ("status",)
     search_fields = ("employee",)
     save_on_top = True
     save_as = True

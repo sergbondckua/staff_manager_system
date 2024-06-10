@@ -5,7 +5,9 @@
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Зберегти</button>
+    <button type="submit" name="save">Зберегти</button>
+    <button type="submit" name="save_and_submit">Відправити на погодження</button>
+
   </form>
   <a href="{% url 'vacation:leave_request_list' %}">Повернутися до списку</a>
 {% endblock %}

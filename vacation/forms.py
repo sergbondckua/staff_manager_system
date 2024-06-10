@@ -24,6 +24,9 @@ class LeaveTypeChoiceField(forms.ModelChoiceField):
 
     def __init__(self, *args, queryset=None, **kwargs):
         super().__init__(*args, queryset=queryset, **kwargs)
+
+        # If a queryset is provided, filter it to exclude objects with
+        # subtypes if the queryset supports filtering
         if queryset is not None:
             self.queryset = (
                 queryset.filter(subtypes__isnull=True)
@@ -48,6 +51,7 @@ class LeaveRequestForm(forms.ModelForm):
             "leave_type",
             "start_date",
             "end_date",
+            "comment",
         ]
         widgets = {
             "start_date": forms.SelectDateWidget(
@@ -66,4 +70,5 @@ class LeaveRequestForm(forms.ModelForm):
                 },
                 attrs={"required": "True"},
             ),
+            "comment": forms.Textarea(attrs={"rows": "5", "cols": "33"})
         }

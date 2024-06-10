@@ -17,20 +17,23 @@ from vacation.models import LeaveRequest
 from vacation.forms import LeaveRequestForm
 
 
-class LeaveRequestListView(LoginRequiredMixin, ListView):
-    """A view for displaying a list of leave requests."""
+class UserLeaveRequestMixin(LoginRequiredMixin):
+    """Mixin to filter leave requests by the current user."""
+
+    def get_queryset(self):
+        return LeaveRequest.objects.filter(employee=self.request.user)
+
+
+class LeaveRequestListView(UserLeaveRequestMixin, ListView):
+    """View for displaying a list of leave requests."""
 
     model = LeaveRequest
     template_name = "vacation/leave_request_list.html"
     context_object_name = "leave_requests"
 
-    def get_queryset(self):
-        # Returns a list of applications for the current user only.
-        return LeaveRequest.objects.filter(employee=self.request.user)
 
-
-class LeaveRequestDetailView(LoginRequiredMixin, DetailView):
-    """A representation to display the details of an individual leave request."""
+class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
+    """View to display the details of an individual leave request."""
 
     model = LeaveRequest
     template_name = "vacation/leave_request_detail.html"
@@ -38,16 +41,12 @@ class LeaveRequestDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["pending"] = StatusRequestChoices.PENDING
+        context["saved"] = StatusRequestChoices.SAVED
         return context
 
-    def get_queryset(self):
-        # Makes sure that the user can see only his applications.
-        return LeaveRequest.objects.filter(employee=self.request.user)
 
-
-class LeaveRequestCreateView(LoginRequiredMixin, CreateView):
-    """Presentation for creating a new leave request."""
+class LeaveRequestFormMixin(UserLeaveRequestMixin):
+    """Mixin to set common attributes for create and update views."""
 
     model = LeaveRequest
     context_object_name = "leave_request"
@@ -56,59 +55,49 @@ class LeaveRequestCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy("vacation:leave_request_list")
 
     def form_valid(self, form):
-        # Sets the current user as the submitter.
         form.instance.employee = self.request.user
-        return super().form_valid(form)
+        if "save" in self.request.POST:
+            return super().form_valid(form)
+        elif "save_and_submit" in self.request.POST:
+            response = super().form_valid(form)
+            self.object.submit_for_approval()
+            return response
+        return super().form_invalid(form)
+
+
+class LeaveRequestCreateView(LeaveRequestFormMixin, CreateView):
+    """View for creating a new leave request."""
 
 
 class LeaveRequestUpdateView(
-    LoginRequiredMixin, SuccessMessageMixin, UpdateView
+    LeaveRequestFormMixin, SuccessMessageMixin, UpdateView
 ):
-    """Editing an existing leave request."""
+    """View for editing an existing leave request."""
 
-    model = LeaveRequest
-    context_object_name = "leave_request"
-    form_class = LeaveRequestForm
-    template_name = "vacation/leave_request_form.html"
     success_message = _("Your changes have been successfully saved.")
-    success_url = reverse_lazy("vacation:leave_request_list")
-
-    def get_queryset(self):
-        # Makes sure that the user can only edit their applications.
-        return LeaveRequest.objects.filter(employee=self.request.user)
 
     def dispatch(self, request, *args, **kwargs):
-        # Get the leave request object
         leave_request = self.get_object()
-        # Check if the status is not pending
-        if leave_request.status != StatusRequestChoices.PENDING:
-            # Add a warning message
+        if leave_request.status != StatusRequestChoices.SAVED:
             messages.warning(
                 request,
                 _("You can only edit leave requests with a pending status."),
             )
-            # Redirect to the leave request list
             return redirect("vacation:leave_request_list")
-        # Proceed with the normal dispatch method
         return super().dispatch(request, *args, **kwargs)
 
 
-class LeaveRequestDeleteView(LoginRequiredMixin, DeleteView):
-    """Submission to delete leave application."""
+class LeaveRequestDeleteView(UserLeaveRequestMixin, DeleteView):
+    """View for deleting a leave application."""
 
     model = LeaveRequest
     context_object_name = "leave_request"
     template_name = "vacation/leave_request_confirm_delete.html"
     success_url = reverse_lazy("vacation:leave_request_list")
 
-    def get_queryset(self):
-        # Makes sure that the user can only delete their applications.
-        return LeaveRequest.objects.filter(employee=self.request.user)
-
     def dispatch(self, request, *args, **kwargs):
         leave_request = self.get_object()
-
-        if leave_request.status != StatusRequestChoices.PENDING:
+        if leave_request.status != StatusRequestChoices.SAVED:
             messages.warning(
                 request,
                 _("You can only delete leave requests with a pending status."),

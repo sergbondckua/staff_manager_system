@@ -55,10 +55,16 @@ class LeaveRequest(BaseModel):
     number_of_days = models.PositiveSmallIntegerField(
         verbose_name=_("Number of days"),
     )
+    comment = models.TextField(
+        verbose_name=_("Comment"),
+        max_length=255,
+        blank=True,
+        null=True,
+    )
     status = models.CharField(
         verbose_name=_("Status"),
         max_length=20,
-        default=StatusRequestChoices.PENDING,
+        default=StatusRequestChoices.SAVED,
         choices=StatusRequestChoices.choices,
     )
 
@@ -84,6 +90,11 @@ class LeaveRequest(BaseModel):
             )
             vacation_record.days += self.number_of_days
             vacation_record.save()
+
+    def submit_for_approval(self):
+        # TODO: Логіка для відправки на погодження
+        self.status = StatusRequestChoices.PENDING
+        self.save()
 
     def save(self, *args, **kwargs):
         """Overrides the save method."""

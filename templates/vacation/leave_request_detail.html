@@ -13,9 +13,10 @@
   <p>Початкова дата відпустки: {{ leave_request.start_date }}</p>
   <p>Кінцева дата відпустки: {{ leave_request.end_date }}</p>
   <p>Кількість днів: {{ leave_request.number_of_days }}</p>
+  <p>{% if leave_request.comment %}Коментар: {{ leave_request.comment }}{% endif %}</p>
   <p>Статус: {{ leave_request.status }}</p>
 
-  {% if leave_request.status == pending %}
+  {% if leave_request.status == saved %}
     <a href="{% url 'vacation:leave_request_update' leave_request.pk %}">Редагувати</a>
     <a href="{% url 'vacation:leave_request_delete' leave_request.pk %}">Видалити</a>
   {% endif %}

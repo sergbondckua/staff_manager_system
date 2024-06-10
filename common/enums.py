@@ -8,6 +8,7 @@ class StatusRequestChoices(models.TextChoices):
     PENDING = "pending", _("Pending")
     APPROVED = "approved", _("Approved")
     REJECTED = "rejected", _("Rejected")
+    SAVED = "saved", _("Saved")
 
 
 UKRAINIAN_MONTHS = {

@@ -66,6 +66,7 @@ class LeaveRequestAdmin(BaseAdmin):
                     "employee",
                     "leave_type",
                     ("start_date", "end_date"),
+                    "comment",
                     "status",
                 )
             },
@@ -80,6 +81,7 @@ class LeaveRequestAdmin(BaseAdmin):
                     "employee",
                     "leave_type",
                     ("start_date", "end_date", "number_of_days"),
+                    "comment",
                     "status",
                 )
             },

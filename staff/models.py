@@ -49,9 +49,9 @@ class Employee(AbstractUser):
     def __str__(self) -> str:
         """Return string representation of the Employee."""
         return (
-            f"{self.first_name} {self.last_name}: ({self.job_title})"
+            f"{self.first_name} {self.last_name}"
             if self.first_name and self.last_name is not None
-            else f"{self.username}: ({self.job_title})"
+            else f"{self.username}"
         )
 
     def delete(self, *args, **kwargs):

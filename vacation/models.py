@@ -95,7 +95,7 @@ class LeaveRequest(BaseModel):
 
     def __str__(self):
         return (
-            f"{self.employee}: {self.leave_type}-{self.number_of_days} day(s)"
+            f"#{self.pk} {self.leave_type}: {self.employee} ({self.number_of_days} day's)"
         )
 
     class Meta:

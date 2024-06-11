@@ -1,5 +1,6 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
+from simple_history.admin import SimpleHistoryAdmin
 
 from common.admin import BaseAdmin
 from common.enums import StatusRequestChoices
@@ -43,7 +44,7 @@ class VacationUsedAdmin(BaseAdmin):
 
 
 @admin.register(LeaveRequest)
-class LeaveRequestAdmin(BaseAdmin):
+class LeaveRequestAdmin(BaseAdmin, SimpleHistoryAdmin):
     """Admin interface for leave requests."""
 
     def get_readonly_fields(self, request, obj=None):

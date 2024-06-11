@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "vacation.apps.VacationConfig",
     #  Installed apps
     "django_cleanup.apps.CleanupConfig",
+    "simple_history",
 ]
 
 MIDDLEWARE = [
@@ -41,6 +42,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # installed mw
+    "simple_history.middleware.HistoryRequestMiddleware",
 ]
 
 ROOT_URLCONF = "app.urls"
@@ -126,3 +129,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, "media").replace("\\", "/")
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Disable the ability to revert to historical records provided by django-simple-history.
+# This prevents users from reverting changes through the admin interface.
+SIMPLE_HISTORY_REVERT_DISABLED = True

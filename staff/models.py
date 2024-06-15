@@ -6,6 +6,7 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from common.models import BaseModel
 from staff.service import generate_path
 
 
@@ -31,12 +32,20 @@ class Employee(AbstractUser):
         unique=True,
         blank=True,
         null=True,
+        help_text="Phone number must be in the format: '+380999999'. Up to 13 digits allowed.",
     )
     telegram_id = models.PositiveBigIntegerField(
         verbose_name=_("Telegram id"),
         unique=True,
         blank=True,
         null=True,
+    )
+    can_duty = models.BooleanField(
+        verbose_name=_("Can Duty"),
+        default=False,
+        help_text=_(
+            "Indicates whether the employee is eligible for weekend duty."
+        ),
     )
     photo = models.ImageField(
         verbose_name=_("Photo"),
@@ -67,3 +76,24 @@ class Employee(AbstractUser):
         ordering = ("username",)
         verbose_name = _("Employee")
         verbose_name_plural = _("Employees")
+
+
+class DutyRoster(BaseModel):
+    """Model to store the duty roster for employees."""
+
+    employee = models.ForeignKey(
+        "Employee", on_delete=models.CASCADE, related_name="duty_rosters"
+    )
+    start_date = models.DateField(verbose_name=_("Start Date"))
+    end_date = models.DateField(verbose_name=_("End Date"))
+
+    def __str__(self):
+        return (
+            f"{self.employee} ({self.start_date.strftime('%A, %d.%m.%Y')} - "
+            f"{self.end_date.strftime('%A, %d.%m.%Y')})"
+        )
+
+    class Meta:
+        verbose_name = _("Duty Roster")
+        verbose_name_plural = _("Duty Rosters")
+        ordering = ("-start_date",)

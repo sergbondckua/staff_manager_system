@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Sum
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import (
@@ -13,7 +14,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 
 from common.enums import StatusRequestChoices
-from vacation.models import LeaveRequest
+from vacation.models import LeaveRequest, VacationUsed
 from vacation.forms import LeaveRequestForm
 
 
@@ -42,6 +43,12 @@ class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["saved"] = StatusRequestChoices.SAVED
+        leave_request = self.get_object()
+        employee = leave_request.employee
+        vacation_days_used = (
+            VacationUsed.objects.get(employee=employee).days or 0
+        )
+        context["vacation_days_used"] = vacation_days_used
         return context
 
 
@@ -53,6 +60,16 @@ class LeaveRequestFormMixin(UserLeaveRequestMixin):
     form_class = LeaveRequestForm
     template_name = "vacation/leave_request_form.html"
     success_url = reverse_lazy("vacation:leave_request_list")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        vacation_used = VacationUsed.objects.filter(
+            employee=self.request.user
+        ).first()
+        context["vacation_days_used"] = (
+            vacation_used.days if vacation_used else 0
+        )
+        return context
 
     def form_valid(self, form):
         form.instance.employee = self.request.user

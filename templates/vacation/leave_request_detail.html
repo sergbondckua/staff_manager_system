@@ -2,6 +2,9 @@
 
 {% block content %}
   <h2>Деталі заявки на відпустку #{{ leave_request.pk }}</h2>
+  <div>
+    <strong>Vacation Days Used:</strong> {{ vacation_days_used }}
+  </div>
   <p>Працівник: {{ leave_request.employee.first_name }} {{ leave_request.employee.last_name }}</p>
   <p>Посада: {{ leave_request.employee.job_title }}</p>
   <p>Підстава:

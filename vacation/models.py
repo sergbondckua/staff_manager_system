@@ -66,6 +66,14 @@ class LeaveRequest(BaseModel):
         default=StatusRequestChoices.SAVED,
         choices=StatusRequestChoices.choices,
     )
+    expired = models.BooleanField(
+        verbose_name=_("Expired"),
+        default=False,
+        help_text=_(
+            "If 'True', these days are not counted as vacation days used.<br>"
+            "It is set automatically by the system at the appointed time."
+        ),
+    )
     history = HistoricalRecords()
 
     def clean(self):
@@ -94,9 +102,7 @@ class LeaveRequest(BaseModel):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return (
-            f"#{self.pk} {self.leave_type}: {self.employee} ({self.number_of_days} day's)"
-        )
+        return f"#{self.pk} {self.leave_type}: {self.employee} ({self.number_of_days} day's)"
 
     class Meta:
         verbose_name = _("Leave Request")

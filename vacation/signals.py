@@ -12,6 +12,7 @@ def update_vacation_used(instance=None):
             LeaveRequest.objects.filter(
                 employee=instance.employee,
                 status=StatusRequestChoices.APPROVED,
+                expired=False,
             ).aggregate(total=models.Sum("number_of_days"))["total"]
             or 0
         )

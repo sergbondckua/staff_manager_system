@@ -2,6 +2,7 @@
 
 {% block content %}
   <h2>{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h2>
+  <b>Використані дні відпустки:</b> {{ vacation_days_used }}
   <form method="post">
     {% csrf_token %}
     {{ form.as_p }}

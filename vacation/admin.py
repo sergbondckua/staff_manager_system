@@ -59,9 +59,18 @@ class LeaveRequestAdmin(BaseAdmin, SimpleHistoryAdmin):
         "start_date",
         "number_of_days",
         "status",
+        "expired",
     )
     list_display_links = ("employee",)
-    list_filter = ("employee", "status", "start_date", "end_date")
+    list_filter = (
+        "employee",
+        "status",
+        "start_date",
+        "end_date",
+        "leave_type",
+        "expired",
+    )
+    readonly_fields = ("expired",) + BaseAdmin.readonly_fields
     search_fields = ("employee",)
     save_on_top = True
     save_as = True
@@ -75,6 +84,7 @@ class LeaveRequestAdmin(BaseAdmin, SimpleHistoryAdmin):
                     ("start_date", "end_date"),
                     "comment",
                     "status",
+                    "expired",
                 )
             },
         ),
@@ -90,6 +100,7 @@ class LeaveRequestAdmin(BaseAdmin, SimpleHistoryAdmin):
                     ("start_date", "end_date", "number_of_days"),
                     "comment",
                     "status",
+                    "expired",
                 )
             },
         ),

@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     "staff.apps.StaffConfig",
     "vacation.apps.VacationConfig",
     #  Installed apps
+    "rest_framework",
     "django_celery_beat",
     "django_cleanup.apps.CleanupConfig",
     "simple_history",
@@ -159,3 +160,12 @@ CELERY_RESULT_BACKEND = "redis://" + REDIS_HOST + ":" + REDIS_PORT + "/0"
 CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
+
+# DRF configuration
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    ]
+}

@@ -3,6 +3,7 @@
 {% block content %}
   <h2>Список заявок на відпустку</h2>
   <ul>
+    {% if duty_now %}<div><b>Черговий цими вихідними:</b> {{ duty_now }}</div>{% endif %}
     {% for leave_request in leave_requests %}
       <li>
         <a href="{% url 'vacation:leave_request_detail' leave_request.pk %}">

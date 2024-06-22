@@ -1,10 +1,18 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+
 from vacation.views import (
     LeaveRequestListView,
     LeaveRequestDetailView,
     LeaveRequestCreateView,
     LeaveRequestUpdateView,
     LeaveRequestDeleteView,
+    LeaveRequestUserViewSet,
+)
+
+router = DefaultRouter()
+router.register(
+    r"leave-requests", LeaveRequestUserViewSet, basename="leave-request"
 )
 
 urlpatterns = [
@@ -33,6 +41,8 @@ urlpatterns = [
         LeaveRequestDeleteView.as_view(),
         name="leave_request_delete",
     ),
+    # API
+    path("api/", include(router.urls)),
 ]
 
 app_name = "vacation"

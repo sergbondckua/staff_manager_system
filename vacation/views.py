@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
+from django.utils import timezone
 from django.views.generic import (
     ListView,
     DetailView,
@@ -18,9 +19,12 @@ from rest_framework.response import Response
 
 from common.enums import StatusRequestChoices
 from staff.models import DutyRoster, Employee
+from staff.service import check_telegram_auth
 from vacation.models import LeaveRequest, VacationUsed
 from vacation.forms import LeaveRequestForm
 from vacation.serializers import LeaveRequestUserSerializer
+
+BOT_TOKEN = "828880461:AAHhvlDx23iRE4OqOMNpgk9cb-8Ew4ALWEE"
 
 
 class UserLeaveRequestMixin(LoginRequiredMixin):
@@ -145,7 +149,7 @@ class IsTelegramUserId(BasePermission):
         Check if the request has a 'telegram_id' parameter or if the user is authenticated.
         """
         return bool(
-            request.GET.get("telegram_id")
+            request.data.get("telegram_id")
             or (request.user and request.user.is_authenticated)
         )
 
@@ -159,21 +163,74 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
         Returns the Employee object corresponding to the provided telegram_id
         if it exists, otherwise returns the authenticated User.
         """
-        telegram_id = self.request.GET.get("telegram_id")
 
-        if telegram_id:
-            try:
-                user = Employee.objects.get(telegram_id=telegram_id)
-                return user
-            except Employee.DoesNotExist:
-                return None
+        user = (
+            self.request.user if self.request.user.is_authenticated else None
+        )
+        telegram_id = self.request.data.get("telegram_id")
+        auth_date = self.request.data.get("auth_date")
+        hash_data = self.request.data.get("hash")
 
-        return self.request.user
+        if telegram_id and auth_date and hash_data:
+            data = {
+                "telegram_user_id": telegram_id,
+                "auth_date": auth_date,
+                "hash": hash_data,
+            }
+            if check_telegram_auth(data, BOT_TOKEN):
+                try:
+                    user = Employee.objects.get(telegram_id=telegram_id)
+                    return user
+                except Employee.DoesNotExist:
+                    return None
+        return user
 
     def get_queryset(self):
-        return LeaveRequest.objects.filter(employee=self.get_request_user())
+        request_user = self.get_request_user()
+        if not request_user:
+            # Return an empty queryset if no user is found
+            return LeaveRequest.objects.none()
+        return LeaveRequest.objects.filter(employee=request_user)
+
+    def create(self, request, *args, **kwargs):
+        """Handle the creation of a new vacation record with validation."""
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        validated_data = serializer.validated_data
+
+        # Check if start_date is in the past
+        start_date = validated_data.get("start_date", "0000-00-00")
+        if start_date < timezone.now().date():
+            return Response(
+                {
+                    "status": _(
+                        "Start date cannot be earlier than the current date."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Check if start_date is after end_date
+        end_date = validated_data.get("end_date", "0000-00-00")
+        if start_date >= end_date:
+            return Response(
+                {
+                    "status": _(
+                        "Start date cannot be later than or equal to end date."
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data, status=status.HTTP_201_CREATED, headers=headers
+        )
 
     def perform_create(self, serializer):
+        """Save the new vacation record with the current user as the employee."""
+
         serializer.save(employee=self.get_request_user())
 
     def perform_update(self, serializer):

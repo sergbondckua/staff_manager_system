@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
@@ -84,6 +85,10 @@ class LeaveRequest(BaseModel):
         if self.end_date <= self.start_date:
             raise ValidationError(
                 _("End date cannot be earlier than start date")
+            )
+        elif self.start_date < timezone.now().date():
+            raise ValidationError(
+                _("Start date cannot be later than current date")
             )
 
     def calculate_number_of_days(self):

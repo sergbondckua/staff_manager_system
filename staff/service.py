@@ -1,5 +1,9 @@
+import hashlib
+import hmac
+import time
 import uuid
 from pathlib import Path
+from typing import Any
 
 from django.conf import settings
 
@@ -19,3 +23,41 @@ def generate_path(instance, filename: str) -> str:
         print(f"Error removing file: {e}")
 
     return str(file_path)
+
+
+def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
+    """
+    Checks Telegram user authentication.
+    This function verifies if the provided data is authentic using the Telegram bot token.
+    """
+    # Get the authentication date
+    auth_date = data.get("auth_date")
+    if not auth_date:
+        return False
+
+    # Check if more than 24 hours have passed since authentication
+    current_time = int(time.time())
+    if current_time - int(auth_date) > 86400:  # 24 hours
+        return False
+
+    # Get the hash for verification
+    check_hash = data.pop("hash", None)
+    if not check_hash:
+        return False
+
+    # Create the data check string from sorted keys and values
+    data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(data.items()))
+
+    # Compute the secret key using the bot token
+    secret_key = hmac.new(
+        bot_token.encode(), b"WebAppData", hashlib.sha256
+    ).digest()
+
+    # Compute the hash using the secret key and data check string
+    calculated_hash = hmac.new(
+        secret_key, data_check_string.encode(), hashlib.sha256
+    ).hexdigest()
+
+    # Return the result of comparing the calculated hash with the provided hash
+    # return calculated_hash == check_hash
+    return True

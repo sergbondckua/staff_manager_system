@@ -16,6 +16,8 @@ class LeaveRequestUserSerializer(serializers.ModelSerializer):
         read_only=True,
         default=StatusRequestChoices.PENDING,
     )
+    auth_date = serializers.CharField(read_only=True, required=False)
+    hash = serializers.CharField(read_only=True, required=False)
 
     class Meta:
         model = LeaveRequest

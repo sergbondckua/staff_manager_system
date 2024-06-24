@@ -18,13 +18,12 @@ from rest_framework.permissions import BasePermission
 from rest_framework.response import Response
 
 from common.enums import StatusRequestChoices
+from common.env import env
 from staff.models import DutyRoster, Employee
 from staff.service import check_telegram_auth
 from vacation.models import LeaveRequest, VacationUsed
 from vacation.forms import LeaveRequestForm
 from vacation.serializers import LeaveRequestUserSerializer
-
-BOT_TOKEN = "828880461:AAHhvlDx23iRE4OqOMNpgk9cb-8Ew4ALWEE"
 
 
 class UserLeaveRequestMixin(LoginRequiredMixin):
@@ -173,11 +172,11 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
         if telegram_id and auth_date and hash_data:
             data = {
-                "telegram_user_id": telegram_id,
+                "telegram_id": telegram_id,
                 "auth_date": auth_date,
                 "hash": hash_data,
             }
-            if check_telegram_auth(data, BOT_TOKEN):
+            if check_telegram_auth(data, env.str("BOT_TOKEN")):
                 try:
                     user = Employee.objects.get(telegram_id=telegram_id)
                     return user

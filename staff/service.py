@@ -47,11 +47,10 @@ def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
 
     # Create the data check string from sorted keys and values
     data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(data.items()))
+    print(data_check_string)
 
     # Compute the secret key using the bot token
-    secret_key = hmac.new(
-        bot_token.encode(), b"WebAppData", hashlib.sha256
-    ).digest()
+    secret_key = hashlib.sha256(bot_token.encode()).digest()
 
     # Compute the hash using the secret key and data check string
     calculated_hash = hmac.new(
@@ -59,5 +58,5 @@ def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
     ).hexdigest()
 
     # Return the result of comparing the calculated hash with the provided hash
-    # return calculated_hash == check_hash
-    return True
+    print(secret_key)
+    return calculated_hash == check_hash

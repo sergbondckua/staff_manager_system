@@ -24,7 +24,7 @@ from vacation.models import LeaveRequest, VacationUsed
 from vacation.forms import LeaveRequestForm
 from vacation.serializers import LeaveRequestUserSerializer
 
-BOT_TOKEN = "828880461:AAHhvlDx23iRE4OqOMNpgk9cb-8Ew4ALWEE"
+BOT_TOKEN = "828880461:-8Ew4ALWEE"
 
 
 class UserLeaveRequestMixin(LoginRequiredMixin):

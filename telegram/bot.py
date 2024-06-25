@@ -2,12 +2,14 @@ import hashlib
 import hmac
 import logging
 import time
-from typing import Any
+from typing import Any, Optional
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command
 from aiogram.types import Message
 import aiohttp
+from aiohttp import ClientResponse
+from aiohttp.connector import TCPConnector
 from environs import Env
 
 # Configure logging
@@ -35,40 +37,28 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
     return computed_hash
 
 
-async def fetch_json(
-    method: str,
-    session: aiohttp.ClientSession,
-    url: str,
-    payload: dict[str, Any],
-    headers: dict[str, str],
-):
-    """
-    Fetch JSON data from the given URL using the provided session, method, payload, and headers.
-    """
-    try:
-        async with session.request(
-            method, url, json=payload, headers=headers
-        ) as response:
-            response.raise_for_status()
-            return await response.json()
-    except aiohttp.ClientError as e:
-        logger.error("Error fetching data: %s", e)
-    except aiohttp.HttpProcessingError as e:
-        logger.error("HTTP error occurred: %s", e)
-    except Exception as e:
-        logger.error("An error occurred: %s", e)
-    return None
-
-
-async def fetch_requests(method: str, **payloads):
+async def fetch_requests(method: str, **payloads: Any) -> Optional[dict]:
     """Fetch requests from the staff API."""
 
     url = f"{env.str('STAFF_API_URL')}/leave-requests/"
     headers = {"Content-Type": "application/json"}
     payloads["hash"] = compute_hash(payloads, env.str("BOT_TOKEN"))
 
+    # Fetch JSON data
     async with aiohttp.ClientSession() as session:
-        return await fetch_json(method, session, url, payloads, headers)
+        try:
+            async with session.request(
+                method, url, json=payloads, headers=headers
+            ) as response:
+                response.raise_for_status()
+                return await response.json()
+        except aiohttp.ClientError as e:
+            logger.error("Error fetching data: %s", e)
+        except aiohttp.HttpProcessingError as e:
+            logger.error("HTTP error occurred: %s", e)
+        except Exception as e:
+            logger.error("An error occurred: %s", e)
+        return None
 
 
 @dp.message(Command(commands=["start"]))

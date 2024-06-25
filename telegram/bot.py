@@ -36,42 +36,39 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
 
 
 async def fetch_json(
+    method: str,
     session: aiohttp.ClientSession,
     url: str,
     payload: dict[str, Any],
     headers: dict[str, str],
 ):
     """
-    Fetch JSON data from the given URL using the provided session, payload, and headers.
+    Fetch JSON data from the given URL using the provided session, method, payload, and headers.
     """
     try:
-        async with session.get(url, json=payload, headers=headers) as response:
+        async with session.request(
+            method, url, json=payload, headers=headers
+        ) as response:
             response.raise_for_status()
             return await response.json()
     except aiohttp.ClientError as e:
-        logger.error(f"Error fetching leave requests: %s", e)
+        logger.error("Error fetching data: %s", e)
     except aiohttp.HttpProcessingError as e:
-        logger.error(f"HTTP error occurred: %s", e)
+        logger.error("HTTP error occurred: %s", e)
     except Exception as e:
-        logger.error(f"An error occurred: %s", e)
+        logger.error("An error occurred: %s", e)
     return None
 
 
-async def fetch_requests(telegram_id: int, auth_date: int, **kwargs):
-    """Fetch leave requests from the staff API."""
+async def fetch_requests(method: str, **payloads):
+    """Fetch requests from the staff API."""
 
     url = f"{env.str('STAFF_API_URL')}/leave-requests/"
     headers = {"Content-Type": "application/json"}
-    payload = {
-        "telegram_id": telegram_id,
-        "auth_date": auth_date,
-        **kwargs,
-    }
-    payload["hash"] = compute_hash(payload, env.str("BOT_TOKEN"))
-    logger.info(payload)
+    payloads["hash"] = compute_hash(payloads, env.str("BOT_TOKEN"))
 
     async with aiohttp.ClientSession() as session:
-        return await fetch_json(session, url, payload, headers)
+        return await fetch_json(method, session, url, payloads, headers)
 
 
 @dp.message(Command(commands=["start"]))
@@ -84,21 +81,16 @@ async def send_welcome(message: Message):
 async def new_vacation(message: Message):
     """Handle the /my_leaves command and send the user's leave requests."""
 
-    telegram_id = message.from_user.id
-    auth_date = int(time.time())
-    start_date = "2024-08-15"
-    end_date = "2024-08-20"
-    comment = "hook"
-    leave_type = 1
+    payloads = {
+        "telegram_id": message.from_user.id,
+        "auth_date": int(time.time()),
+        "start_date": "2024-08-15",
+        "end_date": "2024-08-20",
+        "comment": "hook",
+        "leave_type": 1,
+    }
 
-    new_vac = await fetch_requests(
-        telegram_id,
-        auth_date,
-        start_date=start_date,
-        end_date=end_date,
-        leave_type=leave_type,
-        comment=comment,
-    )
+    new_vac = await fetch_requests("POST", **payloads)
     response = new_vac
 
     await message.answer(str(response))
@@ -108,10 +100,12 @@ async def new_vacation(message: Message):
 async def my_leaves(message: Message):
     """Handle the /my_leaves command and send the user's leave requests."""
 
-    telegram_id = message.from_user.id
-    auth_date = int(time.time())
+    payloads = {
+        "telegram_id": message.from_user.id,
+        "auth_date": int(time.time()),
+    }
 
-    leaves = await fetch_requests(telegram_id, auth_date)
+    leaves = await fetch_requests("GET", **payloads)
     response = (
         "No leave requests found."
         if not leaves

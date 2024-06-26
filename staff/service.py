@@ -7,6 +7,8 @@ from typing import Any
 
 from django.conf import settings
 
+from common.logger import logger
+
 
 def generate_path(instance, filename: str) -> str:
     """Generate a path for photo upload."""
@@ -19,8 +21,7 @@ def generate_path(instance, filename: str) -> str:
         if full_path.exists():
             full_path.unlink()
     except Exception as e:
-        # TODO: Error logging if necessary
-        print(f"Error removing file: {e}")
+        logger.error("Error removing file: %s", e)
 
     return str(file_path)
 
@@ -37,7 +38,7 @@ def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
 
     # Check if more than 24 hours have passed since authentication
     current_time = int(time.time())
-    if current_time - int(auth_date) > 86400:  # 24 hours
+    if current_time - int(auth_date) > 86400:
         return False
 
     # Get the hash for verification
@@ -47,7 +48,6 @@ def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
 
     # Create the data check string from sorted keys and values
     data_check_string = "\n".join(f"{k}={v}" for k, v in sorted(data.items()))
-    print(data_check_string)
 
     # Compute the secret key using the bot token
     secret_key = hashlib.sha256(bot_token.encode()).digest()
@@ -58,5 +58,4 @@ def check_telegram_auth(data: dict[str, Any], bot_token: str) -> bool:
     ).hexdigest()
 
     # Return the result of comparing the calculated hash with the provided hash
-    print(secret_key)
     return calculated_hash == check_hash

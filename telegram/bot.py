@@ -2,6 +2,7 @@ import hashlib
 import hmac
 import logging
 import time
+from datetime import datetime
 from typing import Any, Optional
 
 from aiogram import Bot, Dispatcher, F
@@ -44,10 +45,12 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
     return computed_hash
 
 
-async def fetch_requests(method: str, **payloads: Any) -> Optional[dict]:
+async def fetch_requests(
+    method: str, endpoint: str, **payloads: Any
+) -> Optional[dict]:
     """Fetch requests from the staff API."""
 
-    url = f"{env.str('STAFF_API_URL')}/leave-requests/"
+    url = f"{env.str('STAFF_API_URL')}/{endpoint}/"
     headers = {"Content-Type": "application/json"}
     payloads["hash"] = compute_hash(payloads, env.str("BOT_TOKEN"))
 
@@ -59,13 +62,13 @@ async def fetch_requests(method: str, **payloads: Any) -> Optional[dict]:
             ) as response:
                 response.raise_for_status()
                 return await response.json()
-        except aiohttp.ClientError as e:
-            logger.error("Error fetching data: %s", e)
-        except aiohttp.HttpProcessingError as e:
-            logger.error("HTTP error occurred: %s", e)
-        except Exception as e:
-            logger.error("An error occurred: %s", e)
-        return None
+        except aiohttp.ClientError as client_error:
+            logger.error("Error fetching data: %s", client_error)
+        except aiohttp.HttpProcessingError as http_error:
+            logger.error("HTTP error occurred: %s", http_error)
+        except Exception as general_error:
+            logger.error("An error occurred: %s", general_error)
+        return response.reason
 
 
 @dp.message(Command(commands=["start"]))
@@ -83,7 +86,7 @@ async def my_leaves(message: Message):
         "auth_date": int(time.time()),
     }
 
-    leaves = await fetch_requests("GET", **payloads)
+    leaves = await fetch_requests("GET", "leave-requests", **payloads)
     response = (
         "No leave requests found."
         if not leaves
@@ -121,7 +124,18 @@ async def process_end_date(message: Message, state: FSMContext):
 @dp.message(VacationForm.comment, F.text)
 async def process_comment(message: Message, state: FSMContext):
     await state.update_data(comment=message.text)
-    await message.answer("Please enter the leave type (number):")
+
+    # Receive a list of vacation types
+    leave_types = await fetch_requests("GET", "leave-type", **{})
+
+    # Create a message with a list of vacation types
+    leave_types_message = "\n".join(
+        f"{leave_type['id']}. {leave_type['title']}"
+        for leave_type in leave_types
+    )
+    await message.answer(
+        f"Please enter the leave type (number):\n{leave_types_message}"
+    )
     await state.set_state(VacationForm.leave_type)
 
 
@@ -139,7 +153,7 @@ async def process_leave_type(message: Message, state: FSMContext):
         "leave_type": data["leave_type"],
     }
 
-    new_vac = await fetch_requests("POST", **payloads)
+    new_vac = await fetch_requests("POST", "leave-requests", **payloads)
     response = "\n".join(str(new_vac).split(","))
 
     await message.answer(

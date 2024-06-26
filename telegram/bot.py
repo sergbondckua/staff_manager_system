@@ -4,13 +4,16 @@ import logging
 import time
 from typing import Any, Optional
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, F
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 import aiohttp
-from aiohttp import ClientResponse
-from aiohttp.connector import TCPConnector
 from environs import Env
+
+from telegram.state import VacationForm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +24,10 @@ env = Env()
 env.read_env()
 
 # Initialize bot and dispatcher
-bot = Bot(token=env.str("BOT_TOKEN"))
+bot = Bot(
+    token=env.str("BOT_TOKEN"),
+    default=DefaultBotProperties(parse_mode=ParseMode.HTML),
+)
 dp = Dispatcher()
 
 
@@ -67,23 +73,25 @@ async def send_welcome(message: Message):
     await message.answer("Hi!\nI'm your Leave Request Bot!")
 
 
-@dp.message(Command(commands=["new_vacation"]))
-async def new_vacation(message: Message):
-    """Handle the /my_leaves command and send the user's leave requests."""
-
-    payloads = {
-        "telegram_id": message.from_user.id,
-        "auth_date": int(time.time()),
-        "start_date": "2024-08-15",
-        "end_date": "2024-08-20",
-        "comment": "hook",
-        "leave_type": 1,
-    }
-
-    new_vac = await fetch_requests("POST", **payloads)
-    response = new_vac
-
-    await message.answer(str(response))
+# @dp.message(Command(commands=["new_vacation"]))
+# async def new_vacation(message: Message):
+#     """Creating a vacation request."""
+#
+#     payloads = {
+#         "telegram_id": message.from_user.id,
+#         "auth_date": int(time.time()),
+#         "start_date": "2024-08-15",
+#         "end_date": "2024-08-20",
+#         "comment": "hook",
+#         "leave_type": 1,
+#     }
+#
+#     new_vac = await fetch_requests("POST", **payloads)
+#     response = "\n".join(str(new_vac).split(","))
+#
+#     await message.answer(
+#         f"<pre><code class='language-json'>{response}</code></pre>"
+#     )
 
 
 @dp.message(Command(commands=["my_leaves"]))
@@ -107,6 +115,57 @@ async def my_leaves(message: Message):
     )
 
     await message.answer(response)
+
+
+@dp.message(Command(commands=["new_vacation"]))
+async def new_vacation(message: Message, state: FSMContext):
+    """Initiate the vacation request process."""
+    await message.answer("Please enter the start date (YYYY-MM-DD):")
+    await state.set_state(VacationForm.start_date)
+
+
+@dp.message(VacationForm.start_date, F.text)
+async def process_start_date(message: Message, state: FSMContext):
+    await state.update_data(start_date=message.text)
+    await message.answer("Please enter the end date (YYYY-MM-DD):")
+    await state.set_state(VacationForm.end_date)
+
+
+@dp.message(VacationForm.end_date, F.text)
+async def process_end_date(message: Message, state: FSMContext):
+    await state.update_data(end_date=message.text)
+    await message.answer("Please enter a comment:")
+    await state.set_state(VacationForm.comment)
+
+
+@dp.message(VacationForm.comment, F.text)
+async def process_comment(message: Message, state: FSMContext):
+    await state.update_data(comment=message.text)
+    await message.answer("Please enter the leave type (number):")
+    await state.set_state(VacationForm.leave_type)
+
+
+@dp.message(VacationForm.leave_type, F.text)
+async def process_leave_type(message: Message, state: FSMContext):
+    await state.update_data(leave_type=int(message.text))
+
+    data = await state.get_data()
+    payloads = {
+        "telegram_id": message.from_user.id,
+        "auth_date": int(time.time()),
+        "start_date": data["start_date"],
+        "end_date": data["end_date"],
+        "comment": data["comment"],
+        "leave_type": data["leave_type"],
+    }
+
+    new_vac = await fetch_requests("POST", **payloads)
+    response = "\n".join(str(new_vac).split(","))
+
+    await message.answer(
+        f"<pre><code class='language-json'>{response}</code></pre>"
+    )
+    await state.clear()
 
 
 async def main():

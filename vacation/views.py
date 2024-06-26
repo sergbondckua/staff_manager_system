@@ -14,16 +14,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import BasePermission
+from rest_framework.permissions import BasePermission, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from common.enums import StatusRequestChoices
 from common.env import env
 from staff.models import DutyRoster, Employee
 from staff.service import check_telegram_auth
-from vacation.models import LeaveRequest, VacationUsed
+from vacation.models import LeaveRequest, VacationUsed, LeaveType
 from vacation.forms import LeaveRequestForm
-from vacation.serializers import LeaveRequestUserSerializer
+from vacation.serializers import LeaveRequestUserSerializer, VacationLeaveTypeSerializer
 
 
 class UserLeaveRequestMixin(LoginRequiredMixin):
@@ -60,7 +60,7 @@ class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
         leave_request = self.get_object()
         employee = leave_request.employee
         vacation_days_used = (
-            VacationUsed.objects.get(employee=employee).days or 0
+                VacationUsed.objects.get(employee=employee).days or 0
         )
         context["vacation_days_used"] = vacation_days_used
         return context
@@ -153,6 +153,14 @@ class IsTelegramUserId(BasePermission):
         )
 
 
+class LeaveTypeViewSet(viewsets.ModelViewSet):
+    serializer_class = VacationLeaveTypeSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return LeaveType.objects.all()
+
+
 class LeaveRequestUserViewSet(viewsets.ModelViewSet):
     serializer_class = LeaveRequestUserSerializer
     permission_classes = [IsTelegramUserId]
@@ -171,12 +179,7 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
         hash_data = self.request.data.get("hash")
 
         if telegram_id and auth_date and hash_data:
-            data = {
-                "telegram_id": telegram_id,
-                "auth_date": auth_date,
-                "hash": hash_data,
-            }
-            if check_telegram_auth(data, env.str("BOT_TOKEN")):
+            if check_telegram_auth(self.request.data, env.str("BOT_TOKEN")):
                 try:
                     user = Employee.objects.get(telegram_id=telegram_id)
                     return user
@@ -234,9 +237,9 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if (
-            "status" in serializer.validated_data
-            and serializer.validated_data["status"]
-            == StatusRequestChoices.PENDING
+                "status" in serializer.validated_data
+                and serializer.validated_data["status"]
+                == StatusRequestChoices.PENDING
         ):
             return Response(
                 {

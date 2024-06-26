@@ -33,6 +33,7 @@ dp = Dispatcher()
 
 def compute_hash(payload: dict[str, Any], secret: str) -> str:
     """Compute the HMAC hash for the given payload."""
+
     data_check_string = "\n".join(
         f"{k}={v}" for k, v in sorted(payload.items())
     )
@@ -71,27 +72,6 @@ async def fetch_requests(method: str, **payloads: Any) -> Optional[dict]:
 async def send_welcome(message: Message):
     """Send a welcome message when the /start command is received."""
     await message.answer("Hi!\nI'm your Leave Request Bot!")
-
-
-# @dp.message(Command(commands=["new_vacation"]))
-# async def new_vacation(message: Message):
-#     """Creating a vacation request."""
-#
-#     payloads = {
-#         "telegram_id": message.from_user.id,
-#         "auth_date": int(time.time()),
-#         "start_date": "2024-08-15",
-#         "end_date": "2024-08-20",
-#         "comment": "hook",
-#         "leave_type": 1,
-#     }
-#
-#     new_vac = await fetch_requests("POST", **payloads)
-#     response = "\n".join(str(new_vac).split(","))
-#
-#     await message.answer(
-#         f"<pre><code class='language-json'>{response}</code></pre>"
-#     )
 
 
 @dp.message(Command(commands=["my_leaves"]))

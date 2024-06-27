@@ -90,8 +90,7 @@ async def my_leaves(message: Message):
     response = (
         "No leave requests found."
         if not leaves
-        else "Your Leave Requests:\n\n"
-             + "\n".join(
+        else "Your Leave Requests:\n\n""\n".join(
             f"Start Date: {leave['start_date']}, End Date: {leave['end_date']}, Status: {leave['status']}"
             for leave in leaves
         )
@@ -103,26 +102,49 @@ async def my_leaves(message: Message):
 @dp.message(Command(commands=["new_vacation"]))
 async def new_vacation(message: Message, state: FSMContext):
     """Initiate the vacation request process."""
-    await message.answer("Please enter the start date (YYYY-MM-DD):")
+    await message.answer("Please enter the start date (DD.MM.YYYY):")
     await state.set_state(VacationForm.start_date)
 
 
 @dp.message(VacationForm.start_date, F.text)
 async def process_start_date(message: Message, state: FSMContext):
-    await state.update_data(start_date=message.text)
-    await message.answer("Please enter the end date (YYYY-MM-DD):")
-    await state.set_state(VacationForm.end_date)
+
+    try:
+        start_date = datetime.strptime(message.text, "%d.%m.%Y").date()
+        if start_date < datetime.now().date():
+            await message.answer(
+                "Start date cannot be later than current date\n\n"
+                "Please enter the end date:"
+            )
+            return
+        await state.update_data(start_date=message.text)
+        await message.answer("Please enter the end date (DD.MM.YYYY):")
+        await state.set_state(VacationForm.end_date)
+    except ValueError:
+        await message.reply(
+            "Invalid date format. Please enter a date in the format DD.MM.YYYY:"
+        )
 
 
 @dp.message(VacationForm.end_date, F.text)
 async def process_end_date(message: Message, state: FSMContext):
     data = await state.get_data()
     start_date_str = data["start_date"]
-    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
-    end_date = datetime.strptime(message.text, "%Y-%m-%d")
+    start_date = datetime.strptime(start_date_str, "%d.%m.%Y").date()
 
-    if start_date <= end_date:
-        pass
+    try:
+        end_date = datetime.strptime(message.text, "%d.%m.%Y").date()
+        if start_date >= end_date:
+            await message.answer(
+                "End date cannot be earlier than start date.\n\n"
+                "Please enter the end date:"
+            )
+            return
+    except ValueError:
+        await message.reply(
+            "Invalid date format. Please enter a date in the format DD.MM.YYYY:"
+        )
+
     await state.update_data(end_date=message.text)
     await message.answer("Please enter a comment:")
     await state.set_state(VacationForm.comment)

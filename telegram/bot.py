@@ -46,7 +46,7 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
 
 
 async def fetch_requests(
-    method: str, endpoint: str, **payloads: Any
+        method: str, endpoint: str, **payloads: Any
 ) -> Optional[dict]:
     """Fetch requests from the staff API."""
 
@@ -58,7 +58,7 @@ async def fetch_requests(
     async with aiohttp.ClientSession() as session:
         try:
             async with session.request(
-                method, url, json=payloads, headers=headers
+                    method, url, json=payloads, headers=headers
             ) as response:
                 response.raise_for_status()
                 return await response.json()
@@ -91,7 +91,7 @@ async def my_leaves(message: Message):
         "No leave requests found."
         if not leaves
         else "Your Leave Requests:\n\n"
-        + "\n".join(
+             + "\n".join(
             f"Start Date: {leave['start_date']}, End Date: {leave['end_date']}, Status: {leave['status']}"
             for leave in leaves
         )
@@ -116,6 +116,13 @@ async def process_start_date(message: Message, state: FSMContext):
 
 @dp.message(VacationForm.end_date, F.text)
 async def process_end_date(message: Message, state: FSMContext):
+    data = await state.get_data()
+    start_date_str = data["start_date"]
+    start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+    end_date = datetime.strptime(message.text, "%Y-%m-%d")
+
+    if start_date <= end_date:
+        pass
     await state.update_data(end_date=message.text)
     await message.answer("Please enter a comment:")
     await state.set_state(VacationForm.comment)

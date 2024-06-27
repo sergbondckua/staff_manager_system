@@ -64,11 +64,9 @@ async def fetch_requests(
                 return await response.json()
         except aiohttp.ClientError as client_error:
             logger.error("Error fetching data: %s", client_error)
-        except aiohttp.HttpProcessingError as http_error:
-            logger.error("HTTP error occurred: %s", http_error)
         except Exception as general_error:
             logger.error("An error occurred: %s", general_error)
-        return response.reason
+        return None
 
 
 @dp.message(Command(commands=["start"]))
@@ -90,7 +88,7 @@ async def my_leaves(message: Message):
     response = (
         "No leave requests found."
         if not leaves
-        else "Your Leave Requests:\n\n""\n".join(
+        else "Your Leave Requests:\n\n" + "\n".join(
             f"Start Date: {leave['start_date']}, End Date: {leave['end_date']}, Status: {leave['status']}"
             for leave in leaves
         )
@@ -117,7 +115,7 @@ async def process_start_date(message: Message, state: FSMContext):
                 "Please enter the end date:"
             )
             return
-        await state.update_data(start_date=message.text)
+        await state.update_data(start_date=start_date)
         await message.answer("Please enter the end date (DD.MM.YYYY):")
         await state.set_state(VacationForm.end_date)
     except ValueError:
@@ -129,8 +127,7 @@ async def process_start_date(message: Message, state: FSMContext):
 @dp.message(VacationForm.end_date, F.text)
 async def process_end_date(message: Message, state: FSMContext):
     data = await state.get_data()
-    start_date_str = data["start_date"]
-    start_date = datetime.strptime(start_date_str, "%d.%m.%Y").date()
+    start_date = data["start_date"]
 
     try:
         end_date = datetime.strptime(message.text, "%d.%m.%Y").date()
@@ -140,14 +137,13 @@ async def process_end_date(message: Message, state: FSMContext):
                 "Please enter the end date:"
             )
             return
+        await state.update_data(end_date=end_date)
+        await message.answer("Please enter a comment:")
+        await state.set_state(VacationForm.comment)
     except ValueError:
         await message.reply(
             "Invalid date format. Please enter a date in the format DD.MM.YYYY:"
         )
-
-    await state.update_data(end_date=message.text)
-    await message.answer("Please enter a comment:")
-    await state.set_state(VacationForm.comment)
 
 
 @dp.message(VacationForm.comment, F.text)
@@ -176,8 +172,8 @@ async def process_leave_type(message: Message, state: FSMContext):
     payloads = {
         "telegram_id": message.from_user.id,
         "auth_date": int(time.time()),
-        "start_date": data["start_date"],
-        "end_date": data["end_date"],
+        "start_date": data["start_date"].strftime("%Y-%m-%d"),
+        "end_date": data["end_date"].strftime("%Y-%m-%d"),
         "comment": data["comment"],
         "leave_type": data["leave_type"],
     }

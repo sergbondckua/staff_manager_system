@@ -32,11 +32,11 @@ bot = Bot(
 dp = Dispatcher()
 
 
-def compute_hash(payload: dict[str, Any], secret: str) -> str:
-    """Compute the HMAC hash for the given payload."""
+def compute_hmac_hash(params: dict[str, Any], secret: str) -> str:
+    """Compute the HMAC hash for the given params."""
 
     data_check_string = "\n".join(
-        f"{k}={v}" for k, v in sorted(payload.items())
+        f"{k}={v}" for k, v in sorted(params.items())
     )
     secret_key = hashlib.sha256(secret.encode()).digest()
     computed_hash = hmac.new(
@@ -45,20 +45,20 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
     return computed_hash
 
 
-async def fetch_requests(
-    method: str, endpoint: str, **payloads: Any
+async def make_api_request(
+    method: str, endpoint: str, **params: Any
 ) -> Optional[dict]:
-    """Fetch requests from the staff API."""
+    """Make API requests."""
 
     url = f"{env.str('STAFF_API_URL')}/{endpoint}/"
     headers = {"Content-Type": "application/json"}
-    payloads["hash"] = compute_hash(payloads, env.str("BOT_TOKEN"))
+    params["hash"] = compute_hmac_hash(params, env.str("BOT_TOKEN"))
 
     # Fetch JSON data
     async with aiohttp.ClientSession() as session:
         try:
             async with session.request(
-                method, url, json=payloads, headers=headers
+                method, url, json=params, headers=headers
             ) as response:
                 response.raise_for_status()
                 return await response.json()
@@ -79,19 +79,19 @@ async def send_welcome(message: Message):
 async def my_leaves(message: Message):
     """Handle the /my_leaves command and send the user's leave requests."""
 
-    payloads = {
+    params = {
         "telegram_id": message.from_user.id,
         "auth_date": int(time.time()),
     }
 
-    leaves = await fetch_requests("GET", "leave-requests", **payloads)
+    leave_requests = await make_api_request("GET", "leave-requests", **params)
     response = (
         "No leave requests found."
-        if not leaves
+        if not leave_requests
         else "Your Leave Requests:\n\n"
         + "\n".join(
             f"Start Date: {leave['start_date']}, End Date: {leave['end_date']}, Status: {leave['status']}"
-            for leave in leaves
+            for leave in leave_requests
         )
     )
 
@@ -152,7 +152,7 @@ async def process_comment(message: Message, state: FSMContext):
     await state.update_data(comment=message.text)
 
     # Receive a list of vacation types
-    leave_types = await fetch_requests("GET", "leave-type", **{})
+    leave_types = await make_api_request("GET", "leave-type", **{})
 
     # Create a message with a list of vacation types
     leave_types_message = "\n".join(
@@ -170,7 +170,7 @@ async def process_leave_type(message: Message, state: FSMContext):
     await state.update_data(leave_type=int(message.text))
 
     data = await state.get_data()
-    payloads = {
+    params = {
         "telegram_id": message.from_user.id,
         "auth_date": int(time.time()),
         "start_date": data["start_date"].strftime("%Y-%m-%d"),
@@ -179,12 +179,17 @@ async def process_leave_type(message: Message, state: FSMContext):
         "leave_type": data["leave_type"],
     }
 
-    new_vac = await fetch_requests("POST", "leave-requests", **payloads)
-    # Send for approval
-    await fetch_requests(
-        "POST", f"leave-requests/{new_vac['id']}/save_and_submit", **payloads
+    # Create vacation form and save
+    new_vacation_request = await make_api_request(
+        "POST", "leave-requests", **params
     )
-    response = "\n".join(str(new_vac).split(","))
+    # Send for approval
+    await make_api_request(
+        "POST",
+        f"leave-requests/{new_vacation_request['id']}/save_and_submit",
+        **params,
+    )
+    response = "\n".join(str(new_vacation_request).split(","))
 
     await message.answer(
         f"<pre><code class='language-json'>{response}</code></pre>"

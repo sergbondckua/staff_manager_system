@@ -1,3 +1,5 @@
+import asyncio
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -7,6 +9,7 @@ from simple_history.models import HistoricalRecords
 from common.enums import StatusRequestChoices
 from common.models import BaseModel
 from staff.models import Employee
+from telegram.bot import bot
 
 
 class VacationUsed(BaseModel):
@@ -99,6 +102,14 @@ class LeaveRequest(BaseModel):
         # TODO: Логіка для відправки на погодження
         self.status = StatusRequestChoices.PENDING
         self.save()
+        asyncio.run(
+            bot.send_message(
+                chat_id=541696726,
+                text=f"<b>Approval request #{self.pk}:</b>\n{self.employee}\n"
+                f"{self.start_date.strftime('%d %B %Y')} - "
+                f"{self.end_date.strftime('%d %B %Y')} - {self.number_of_days} дні(в)",
+            )
+        )
 
     def save(self, *args, **kwargs):
         """Overrides the save method."""

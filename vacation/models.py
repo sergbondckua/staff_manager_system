@@ -107,7 +107,8 @@ class LeaveRequest(BaseModel):
                 chat_id=541696726,
                 text=f"<b>Approval request #{self.pk}:</b>\n{self.employee}\n"
                 f"{self.start_date.strftime('%d %B %Y')} - "
-                f"{self.end_date.strftime('%d %B %Y')} - {self.number_of_days} дні(в)",
+                f"{self.end_date.strftime('%d %B %Y')} - {self.number_of_days} day(s)\n"
+                f"<i>{self.comment if self.comment else ''}</i>",
             )
         )
 

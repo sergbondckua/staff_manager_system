@@ -46,7 +46,7 @@ def compute_hash(payload: dict[str, Any], secret: str) -> str:
 
 
 async def fetch_requests(
-        method: str, endpoint: str, **payloads: Any
+    method: str, endpoint: str, **payloads: Any
 ) -> Optional[dict]:
     """Fetch requests from the staff API."""
 
@@ -58,7 +58,7 @@ async def fetch_requests(
     async with aiohttp.ClientSession() as session:
         try:
             async with session.request(
-                    method, url, json=payloads, headers=headers
+                method, url, json=payloads, headers=headers
             ) as response:
                 response.raise_for_status()
                 return await response.json()
@@ -88,7 +88,8 @@ async def my_leaves(message: Message):
     response = (
         "No leave requests found."
         if not leaves
-        else "Your Leave Requests:\n\n" + "\n".join(
+        else "Your Leave Requests:\n\n"
+        + "\n".join(
             f"Start Date: {leave['start_date']}, End Date: {leave['end_date']}, Status: {leave['status']}"
             for leave in leaves
         )
@@ -179,6 +180,10 @@ async def process_leave_type(message: Message, state: FSMContext):
     }
 
     new_vac = await fetch_requests("POST", "leave-requests", **payloads)
+    # Send for approval
+    await fetch_requests(
+        "POST", f"leave-requests/{new_vac['id']}/save_and_submit", **payloads
+    )
     response = "\n".join(str(new_vac).split(","))
 
     await message.answer(

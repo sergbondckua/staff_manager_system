@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import json
 import logging
 import time
 from datetime import datetime
@@ -101,13 +102,23 @@ async def my_leaves(message: Message):
 @dp.message(Command(commands=["new_vacation"]))
 async def new_vacation(message: Message, state: FSMContext):
     """Initiate the vacation request process."""
+
+    params = {"telegram_id": message.from_user.id}
+    is_employee = await make_api_request(
+        "GET", "leave-requests/telegram_is_employee", **params
+    )
+    if not is_employee.get("status"):
+        await message.answer(
+            "You are not an employee or not yet registered, please contact your manager."
+        )
+        return
+
     await message.answer("Please enter the start date (DD.MM.YYYY):")
     await state.set_state(VacationForm.start_date)
 
 
 @dp.message(VacationForm.start_date, F.text)
 async def process_start_date(message: Message, state: FSMContext):
-
     try:
         start_date = datetime.strptime(message.text, "%d.%m.%Y").date()
         if start_date < datetime.now().date():
@@ -167,6 +178,24 @@ async def process_comment(message: Message, state: FSMContext):
 
 @dp.message(VacationForm.leave_type, F.text)
 async def process_leave_type(message: Message, state: FSMContext):
+    # Receive a list of vacation types
+    valid_leave_types = [
+        num["id"] for num in await make_api_request("GET", "leave-type")
+    ]
+    try:
+        leave_type = int(message.text)
+        # Correctness check leave_type
+        if leave_type not in valid_leave_types:
+            await message.answer(
+                "Wrong type of leave. Please enter a valid leave type."
+            )
+            return
+    except ValueError:
+        await message.answer(
+            "Incorrect input. Please enter a numeric leave type:"
+        )
+        return
+
     await state.update_data(leave_type=int(message.text))
 
     data = await state.get_data()
@@ -189,7 +218,7 @@ async def process_leave_type(message: Message, state: FSMContext):
         f"leave-requests/{new_vacation_request['id']}/save_and_submit",
         **params,
     )
-    response = "\n".join(str(new_vacation_request).split(","))
+    response = json.dumps(new_vacation_request, indent=4, ensure_ascii=False)
 
     await message.answer(
         f"<pre><code class='language-json'>{response}</code></pre>"

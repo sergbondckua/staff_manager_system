@@ -14,16 +14,22 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.utils.translation import gettext_lazy as _
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import BasePermission, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    BasePermission,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
 from common.enums import StatusRequestChoices
 from common.env import env
 from staff.models import DutyRoster, Employee
-from staff.service import check_telegram_auth
+from staff.services import check_telegram_auth
 from vacation.models import LeaveRequest, VacationUsed, LeaveType
 from vacation.forms import LeaveRequestForm
-from vacation.serializers import LeaveRequestUserSerializer, VacationLeaveTypeSerializer
+from vacation.serializers import (
+    LeaveRequestUserSerializer,
+    VacationLeaveTypeSerializer,
+)
 
 
 class UserLeaveRequestMixin(LoginRequiredMixin):
@@ -271,6 +277,16 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
         ).first()
         days_used = vacation_used.days if vacation_used else 0
         return Response({"vacation_days_used": days_used})
+
+    @action(detail=False, methods=["get"])
+    def telegram_is_employee(self, request):
+        try:
+            Employee.objects.get(
+                telegram_id=request.data.get("telegram_id")
+            )
+            return Response({"status": True})
+        except Employee.DoesNotExist:
+            return Response({"status": False})
 
     @action(detail=True, methods=["post"])
     def save_and_submit(self, request, pk=None):

@@ -7,7 +7,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from common.models import BaseModel
-from staff.service import generate_path
+from staff.services import generate_path
 
 
 class Employee(AbstractUser):

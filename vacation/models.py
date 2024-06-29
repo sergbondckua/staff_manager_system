@@ -1,5 +1,3 @@
-import asyncio
-
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
@@ -9,7 +7,7 @@ from simple_history.models import HistoricalRecords
 from common.enums import StatusRequestChoices
 from common.models import BaseModel
 from staff.models import Employee
-from telegram.bot import bot
+from vacation.tasks import send_vacation_request_for_approval
 
 
 class VacationUsed(BaseModel):
@@ -99,18 +97,23 @@ class LeaveRequest(BaseModel):
         self.number_of_days = (self.end_date - self.start_date).days
 
     def submit_for_approval(self):
-        # TODO: Логіка для відправки на погодження
+        """Submit the leave request for approval."""
+
+        # Format the approval message
+        msg = _(
+            f"<b>Approval request #{self.pk}:</b>\n{self.employee}\n"
+            f"{self.start_date.strftime('%d %B %Y')} - "
+            f"{self.end_date.strftime('%d %B %Y')} - {self.number_of_days} day(s) "
+            f"{self.leave_type}\n"
+            f"<i>{self.comment if self.comment else ''}</i>"
+        )
+
+        # Update the status to pending
         self.status = StatusRequestChoices.PENDING
         self.save()
-        asyncio.run(
-            bot.send_message(
-                chat_id=541696726,
-                text=f"<b>Approval request #{self.pk}:</b>\n{self.employee}\n"
-                f"{self.start_date.strftime('%d %B %Y')} - "
-                f"{self.end_date.strftime('%d %B %Y')} - {self.number_of_days} day(s)\n"
-                f"<i>{self.comment if self.comment else ''}</i>",
-            )
-        )
+
+        # Sends a message to managers requesting approval in Telegram
+        send_vacation_request_for_approval.delay(text=msg)
 
     def save(self, *args, **kwargs):
         """Overrides the save method."""

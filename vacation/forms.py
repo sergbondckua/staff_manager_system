@@ -70,5 +70,30 @@ class LeaveRequestForm(forms.ModelForm):
                 },
                 attrs={"required": "True"},
             ),
-            "comment": forms.Textarea(attrs={"rows": "5", "cols": "33"})
+            "comment": forms.Textarea(attrs={"rows": "5", "cols": "33"}),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        employee = cleaned_data.get("employee")
+        start_date = cleaned_data.get("start_date")
+        end_date = cleaned_data.get("end_date")
+
+        if start_date and end_date and employee:
+            overlapping_requests = LeaveRequest.objects.filter(
+                employee=employee,
+                start_date__lt=end_date,
+                end_date__gt=start_date,
+            ).exclude(pk=self.instance.pk)
+
+            if overlapping_requests.exists():
+                overlapping_dates = [
+                    f"{req.start_date} - {req.end_date}"
+                    for req in overlapping_requests
+                ]
+                raise forms.ValidationError(
+                    _(
+                        "There is an overlap with other leave requests for the selected dates: %s."
+                    )
+                    % ", ".join(overlapping_dates)
+                )

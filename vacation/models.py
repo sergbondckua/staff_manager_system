@@ -91,6 +91,26 @@ class LeaveRequest(BaseModel):
             raise ValidationError(
                 _("Start date cannot be later than current date")
             )
+        # Check for overlapping leave requests
+        overlapping_requests = LeaveRequest.objects.filter(
+            employee_id=self.employee_id,
+            start_date__lt=self.end_date,
+            end_date__gt=self.start_date,
+        ).exclude(
+            pk=self.pk
+        )  # Exclude current instance in case of update
+
+        if overlapping_requests.exists():
+            overlapping_dates = [
+                f"{req.start_date} - {req.end_date}"
+                for req in overlapping_requests
+            ]
+            raise ValidationError(
+                _(
+                    "There is an overlap with other leave requests for the selected dates: %s."
+                )
+                % ", ".join(overlapping_dates)
+            )
 
     def calculate_number_of_days(self):
         """Calculates the number of days."""

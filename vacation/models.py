@@ -112,7 +112,7 @@ class LeaveRequest(BaseModel):
         self.status = StatusRequestChoices.PENDING
         self.save()
 
-        # Sends a message to managers requesting approval in Telegram
+        # [celery] Sends a message to managers requesting approval in Telegram
         send_vacation_request_for_approval.delay(text=msg)
 
     def save(self, *args, **kwargs):

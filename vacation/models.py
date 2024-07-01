@@ -78,40 +78,6 @@ class LeaveRequest(BaseModel):
     )
     history = HistoricalRecords()
 
-    def clean(self):
-        """
-        Model validation method.
-        Ensures the end date is not earlier than the start date.
-        """
-        if self.end_date <= self.start_date:
-            raise ValidationError(
-                _("End date cannot be earlier than start date")
-            )
-        elif self.start_date < timezone.now().date():
-            raise ValidationError(
-                _("Start date cannot be later than current date")
-            )
-        # Check for overlapping leave requests
-        overlapping_requests = LeaveRequest.objects.filter(
-            employee_id=self.employee_id,
-            start_date__lt=self.end_date,
-            end_date__gt=self.start_date,
-        ).exclude(
-            pk=self.pk
-        )  # Exclude current instance in case of update
-
-        if overlapping_requests.exists():
-            overlapping_dates = [
-                f"{req.start_date} - {req.end_date}"
-                for req in overlapping_requests
-            ]
-            raise ValidationError(
-                _(
-                    "There is an overlap with other leave requests for the selected dates: %s."
-                )
-                % ", ".join(overlapping_dates)
-            )
-
     def calculate_number_of_days(self):
         """Calculates the number of days."""
         self.number_of_days = (self.end_date - self.start_date).days
@@ -137,7 +103,6 @@ class LeaveRequest(BaseModel):
 
     def save(self, *args, **kwargs):
         """Overrides the save method."""
-        self.clean()
         self.calculate_number_of_days()
         super().save(*args, **kwargs)
 

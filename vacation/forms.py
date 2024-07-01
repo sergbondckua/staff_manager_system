@@ -7,15 +7,17 @@ from .models import LeaveRequest, LeaveType
 
 
 class LeaveTypeChoiceField(forms.ModelChoiceField):
-    """The type of choice field for Leave requests."""
+    """Custom choice field for LeaveType model that includes hierarchy in the label."""
 
-    def label_from_instance(self, obj):
+    def label_from_instance(self, obj) -> str:
+        """Generate a label for the instance that includes its hierarchy."""
         level = 0
         parent = obj.parent
         while parent:
             level += 1
             parent = parent.parent
 
+        # Construct the label showing the hierarchy with '—' characters
         return (
             str(obj.title)
             if obj.parent is None
@@ -36,7 +38,7 @@ class LeaveTypeChoiceField(forms.ModelChoiceField):
 
 
 class LeaveRequestForm(forms.ModelForm):
-    """Form for creating vacation requests."""
+    """Form for creating and validating leave requests."""
 
     leave_type = LeaveTypeChoiceField(
         queryset=LeaveType.objects.all(),
@@ -73,27 +75,46 @@ class LeaveRequestForm(forms.ModelForm):
             "comment": forms.Textarea(attrs={"rows": "5", "cols": "33"}),
         }
 
-    def clean(self):
+    def __init__(self, *args, **kwargs):
+        self.employee = kwargs.pop("employee", None)
+        super().__init__(*args, **kwargs)
+
+    def clean(self) -> dict:
         cleaned_data = super().clean()
-        employee = cleaned_data.get("employee")
         start_date = cleaned_data.get("start_date")
         end_date = cleaned_data.get("end_date")
 
-        if start_date and end_date and employee:
+        # Ensure the employee is set
+        if not self.employee:
+            raise forms.ValidationError(_("Employee must be set"))
+
+        # Validate that end date is not before start date
+        if start_date and end_date:
+            if end_date <= start_date:
+                raise forms.ValidationError(
+                    _("End date cannot be earlier than start date")
+                )
+            # Validate that start date is not in the past
+            elif start_date < timezone.now().date():
+                raise forms.ValidationError(
+                    _("Start date cannot be later than current date")
+                )
+            # Check for overlapping leave requests for the employee
             overlapping_requests = LeaveRequest.objects.filter(
-                employee=employee,
+                employee=self.employee,
                 start_date__lt=end_date,
                 end_date__gt=start_date,
             ).exclude(pk=self.instance.pk)
 
             if overlapping_requests.exists():
-                overlapping_dates = [
+                overlapping_dates = ", ".join(
                     f"{req.start_date} - {req.end_date}"
                     for req in overlapping_requests
-                ]
+                )
                 raise forms.ValidationError(
                     _(
-                        "There is an overlap with other leave requests for the selected dates: %s."
+                        "There is an overlap with other leave requests for the selected dates: %s.",
                     )
-                    % ", ".join(overlapping_dates)
+                    % overlapping_dates
                 )
+        return cleaned_data

@@ -66,7 +66,7 @@ class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
         leave_request = self.get_object()
         employee = leave_request.employee
         vacation_days_used = (
-                VacationUsed.objects.get(employee=employee).days or 0
+            VacationUsed.objects.get(employee=employee).days or 0
         )
         context["vacation_days_used"] = vacation_days_used
         return context
@@ -90,6 +90,11 @@ class LeaveRequestFormMixin(UserLeaveRequestMixin):
             vacation_used.days if vacation_used else 0
         )
         return context
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["employee"] = self.request.user
+        return kwargs
 
     def form_valid(self, form):
         form.instance.employee = self.request.user
@@ -243,9 +248,9 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if (
-                "status" in serializer.validated_data
-                and serializer.validated_data["status"]
-                == StatusRequestChoices.PENDING
+            "status" in serializer.validated_data
+            and serializer.validated_data["status"]
+            == StatusRequestChoices.PENDING
         ):
             return Response(
                 {
@@ -281,9 +286,7 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=["get"])
     def telegram_is_employee(self, request):
         try:
-            Employee.objects.get(
-                telegram_id=request.data.get("telegram_id")
-            )
+            Employee.objects.get(telegram_id=request.data.get("telegram_id"))
             return Response({"status": True})
         except Employee.DoesNotExist:
             return Response({"status": False})

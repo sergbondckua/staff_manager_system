@@ -113,8 +113,7 @@ class LeaveRequestForm(forms.ModelForm):
                 )
                 raise forms.ValidationError(
                     _(
-                        "There is an overlap with other leave requests for the selected dates: %s.",
+                        f"There is an overlap with other leave requests for the selected dates: {overlapping_dates}.",
                     )
-                    % overlapping_dates
                 )
         return cleaned_data

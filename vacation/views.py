@@ -291,6 +291,30 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
         except Employee.DoesNotExist:
             return Response({"status": False})
 
+    @action(detail=False, methods=["get"])
+    def check_overlap(self, request):
+        telegram_id = request.data.get("telegram_id")
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
+
+        overlapping_requests = LeaveRequest.objects.filter(
+            employee__telegram_id=telegram_id,
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+        )
+        overlap = overlapping_requests.exists()
+        overlapping_dates = (
+            ",\n".join(
+                f"#{req.pk}: {req.start_date} - {req.end_date}"
+                for req in overlapping_requests
+            )
+            if overlap
+            else None
+        )
+        return Response(
+            {"overlap": overlap, "leave_request": overlapping_dates}
+        )
+
     @action(detail=True, methods=["post"])
     def save_and_submit(self, request, pk=None):
         leave_request = self.get_object()

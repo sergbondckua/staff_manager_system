@@ -46,6 +46,21 @@ def compute_hmac_hash(params: dict[str, Any], secret: str) -> str:
     return computed_hash
 
 
+async def check_date_overlap(
+    telegram_id: int, start_date: datetime.date, end_date: datetime.date
+) -> dict:
+    params = {
+        "telegram_id": telegram_id,
+        "start_date": start_date.strftime("%Y-%m-%d"),
+        "end_date": end_date.strftime("%Y-%m-%d"),
+    }
+    overlapping_requests = await make_api_request(
+        "GET", "leave-requests/check_overlap", **params
+    )
+
+    return overlapping_requests
+
+
 async def make_api_request(
     method: str, endpoint: str, **params: Any
 ) -> Optional[dict]:
@@ -138,6 +153,7 @@ async def process_start_date(message: Message, state: FSMContext):
 
 @dp.message(VacationForm.end_date, F.text)
 async def process_end_date(message: Message, state: FSMContext):
+    telegram_id = message.from_user.id
     data = await state.get_data()
     start_date = data["start_date"]
 
@@ -149,6 +165,20 @@ async def process_end_date(message: Message, state: FSMContext):
                 "Please enter the end date:"
             )
             return
+
+        # Date overlap check
+        overlap = await check_date_overlap(
+            telegram_id=telegram_id,
+            start_date=start_date,
+            end_date=end_date,
+        )
+        if overlap.get("overlap", False):
+            await message.answer(
+                "There is an overlap with other leave requests for the selected dates.\n"
+                f"{overlap.get('leave_request')}"
+            )
+            return
+
         await state.update_data(end_date=end_date)
         await message.answer("Please enter a comment:")
         await state.set_state(VacationForm.comment)

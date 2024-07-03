@@ -172,11 +172,13 @@ async def process_end_date(message: Message, state: FSMContext):
             start_date=start_date,
             end_date=end_date,
         )
-        if overlap.get("overlap", False):
+        if overlap.get("overlap"):
             await message.answer(
                 "There is an overlap with other leave requests for the selected dates.\n"
-                f"{overlap.get('leave_request')}"
+                f"{overlap.get('leave_request')}\n"
+                "Enter <b>start date</b> again:"
             )
+            await state.set_state(VacationForm.start_date)
             return
 
         await state.update_data(end_date=end_date)

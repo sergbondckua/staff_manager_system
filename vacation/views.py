@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.db.models import Q, Count
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -169,7 +170,12 @@ class LeaveTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return LeaveType.objects.all()
+        # return LeaveType.objects.all()
+        return LeaveType.objects.annotate(
+            subtypes_count=Count("subtypes")
+        ).filter(
+            Q(parent__isnull=False) | Q(parent__isnull=True, subtypes_count=0)
+        )
 
 
 class LeaveRequestUserViewSet(viewsets.ModelViewSet):

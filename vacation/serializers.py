@@ -48,11 +48,8 @@ class LeaveRequestUserSerializer(serializers.ModelSerializer):
         start_date = data.get("start_date")
         end_date = data.get("end_date")
 
-        if not employee:
-            raise ValidationError(_("Employee must be set"))
-
         # Check for overlapping leave requests for the employee
-        if start_date and end_date:
+        if start_date and end_date and employee.is_authenticated:
             overlapping_requests = LeaveRequest.objects.filter(
                 employee=employee,
                 start_date__lte=end_date,

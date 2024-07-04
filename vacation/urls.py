@@ -14,7 +14,7 @@ router = DefaultRouter()
 router.register(
     r"leave-requests", LeaveRequestUserViewSet, basename="leave-request"
 )
-router.register(f"leave-type", LeaveTypeViewSet, basename="leave-type")
+router.register(r"leave-type", LeaveTypeViewSet, basename="leave-type")
 
 urlpatterns = [
     path(

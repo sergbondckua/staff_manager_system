@@ -300,11 +300,21 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def telegram_is_employee(self, request):
-        try:
-            Employee.objects.get(telegram_id=request.data.get("telegram_id"))
+        """Check if an employee with the given telegram_id exists."""
+        telegram_id = request.data.get("telegram_id")
+
+        if not telegram_id:
+            return Response(
+                {"status": False, "error": "telegram_id is required"},
+                status=400,
+            )
+
+        # Filter employees by telegram_id
+        employees = Employee.objects.filter(telegram_id=telegram_id)
+
+        if employees.exists():
             return Response({"status": True})
-        except Employee.DoesNotExist:
-            return Response({"status": False})
+        return Response({"status": False})
 
     @action(detail=False, methods=["get"])
     def check_overlap(self, request):

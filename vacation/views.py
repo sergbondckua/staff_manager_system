@@ -170,12 +170,18 @@ class LeaveTypeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        # return LeaveType.objects.all()
-        return LeaveType.objects.annotate(
-            subtypes_count=Count("subtypes")
-        ).filter(
-            Q(parent__isnull=False) | Q(parent__isnull=True, subtypes_count=0)
-        )
+        """
+        Get all LeaveTypes with an additional subtypes_count field.
+        Only those LeaveTypes that have a parent or no subtypes are returned.
+        """
+        try:
+            queryset = LeaveType.objects.annotate(subtypes_count=Count("subtypes"))
+            filtered_queryset = queryset.filter(
+                Q(parent__isnull=False) | Q(parent__isnull=True, subtypes_count=0)
+            )
+            return filtered_queryset
+        except LeaveType.DoesNotExist:
+            return LeaveType.objects.none()
 
 
 class LeaveRequestUserViewSet(viewsets.ModelViewSet):

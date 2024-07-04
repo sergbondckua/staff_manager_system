@@ -175,9 +175,12 @@ class LeaveTypeViewSet(viewsets.ModelViewSet):
         Only those LeaveTypes that have a parent or no subtypes are returned.
         """
         try:
-            queryset = LeaveType.objects.annotate(subtypes_count=Count("subtypes"))
+            queryset = LeaveType.objects.annotate(
+                subtypes_count=Count("subtypes")
+            )
             filtered_queryset = queryset.filter(
-                Q(parent__isnull=False) | Q(parent__isnull=True, subtypes_count=0)
+                Q(parent__isnull=False)
+                | Q(parent__isnull=True, subtypes_count=0)
             )
             return filtered_queryset
         except LeaveType.DoesNotExist:

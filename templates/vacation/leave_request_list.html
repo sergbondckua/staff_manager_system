@@ -1,6 +1,6 @@
 {% extends "base_generic.html" %}
-{% load static %}
 {% load custom_filters %}
+{% load static %}
 
 
 {% block content %}
@@ -20,7 +20,10 @@
                      aria-valuemin="0" aria-valuemax="24"></div>
               </div>
               <div class="d-flex align-items-center justify-content-between">
-                <p class="pb-0 mb-0 font-weight-bold">Використано відпустки</p>
+                <p class="pb-0 mb-0 font-weight-bold">
+                  {% if day.days %}{{ day.days|calculate_percentage:24 }}{% else %}0{% endif %}%
+                  Використано відпустки
+                </p>
                 <i class="mdi mdi-beach mdi-36px"></i>
               </div>
             </div>
@@ -85,7 +88,7 @@
                   </td>
                   <td>
                     <a href="{% url 'vacation:leave_request_detail' leave_request.pk %}"
-                         class="btn btn-rounded btn-outline-linkedin">Докладно</a>
+                       class="btn btn-rounded btn-outline-linkedin">Докладно</a>
                   </td>
                 </tr>
               {% empty %}
@@ -102,6 +105,41 @@
         </div>
       </div>
     </div>
+    {# Currently leaves#}
+    {% if currently_on_leave %}
+      <div class="col-lg-4 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body">
+            <h4 class="card-title">Зараз у відпустці</h4>
+            <p class="card-description"></p>
+            <div class="table-responsive">
+              <table class="table table-striped">
+                <thead>
+                <tr>
+                  <th></th>
+                  <th>Прізвище Ім'я</th>
+                  <th>Дні</th>
+                  <th>До</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for current_leave in currently_on_leave %}
+                  <tr>
+                    <td class="py-1">
+                      <img src="{{ current_leave.employee.photo.url }}" alt="photo"/>
+                    </td>
+                    <td>{{ current_leave.employee }}</td>
+                    <td>{{ current_leave.number_of_days }}</td>
+                    <td>{{ current_leave.end_date|date:"d M Y" }}</td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
     {# Duty #}
     <div class="col-sm-4 flex-column d-flex stretch-card">
       <div class="row flex-grow">
@@ -122,7 +160,7 @@
                       <h3 class="text-dark font-weight-bold">{{ duty_now.employee }}</h3>
                     </div>
                     <p>
-                      <button class="btn btn-outline-dark btn-icon-text">
+                      <button class="disabled btn btn-outline-dark btn-icon-text">
                         <i class="mdi mdi-cellphone-iphone btn-icon-prepend mdi-36px"></i>
                         <span class="d-inline-block text-left">
                             <small class="font-weight-light d-block">Для звʼязку!</small>

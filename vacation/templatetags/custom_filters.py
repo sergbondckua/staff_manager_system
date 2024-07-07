@@ -4,7 +4,7 @@ register = template.Library()
 
 
 @register.filter
-def calculate_percentage(value: float, max_value: float) -> int:
+def calculate_percentage(value: int, max_value: int) -> int:
     """Calculate the percentage of value relative to max_value."""
     try:
         # Calculate percentage

@@ -55,6 +55,15 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
         duty_now = DutyRoster.objects.order_by("pk").last()
         context["duty_now"] = duty_now if duty_now else None
 
+        # Currently on vacation
+        today = timezone.now().date()
+        currently_on_leave = LeaveRequest.objects.filter(
+            start_date__lte=today,
+            end_date__gte=today,
+            status=StatusRequestChoices.APPROVED,
+        )
+        context["currently_on_leave"] = currently_on_leave
+
         # Calculate the total number of days for each type of vacation
         leave_type_days_summary = (
             LeaveRequest.objects.filter(
@@ -64,7 +73,7 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
             .values(
                 "leave_type__title",
                 "leave_type__parent__title",
-                "leave_type__pk"
+                "leave_type__pk",
             )
             .annotate(
                 total_days=Sum("number_of_days"),

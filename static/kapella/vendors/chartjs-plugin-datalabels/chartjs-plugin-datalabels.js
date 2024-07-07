@@ -856,7 +856,7 @@ function coordinates(view, model, geometry) {
 	var w = geometry.w;
 	var h = geometry.h;
 
-	// take in account the label rotation
+	// take in accounts the label rotation
 	var rotation = model.rotation;
 	var dx = Math.abs(w / 2 * Math.cos(rotation)) + Math.abs(h / 2 * Math.sin(rotation));
 	var dy = Math.abs(w / 2 * Math.sin(rotation)) + Math.abs(h / 2 * Math.cos(rotation));

@@ -1,20 +1,149 @@
 {% extends "base_generic.html" %}
+{% load static %}
+{% load custom_filters %}
+
 
 {% block content %}
-  <h2>Список заявок на відпустку</h2>
-  <ul>
-    {% if duty_now %}
-      <div><b>Черговий цими
-        вихідними:</b> {{ duty_now.employee }} {{ duty_now.start_date|date:"l: d E Y" }}
-        - {{ duty_now.end_date|date:"l: d E Y" }}
-      </div>{% endif %}
-    {% for leave_request in leave_requests %}
-      <li>
-        <a href="{% url 'vacation:leave_request_detail' leave_request.pk %}">
-          #{{ leave_request.pk }} {{ leave_request.start_date }}: {{ leave_request.number_of_days }} {{ leave_request.reason }} {{ leave_request.status }}
-        </a>
-      </li>
-    {% endfor %}
-  </ul>
-  <a href="{% url 'vacation:leave_request_create' %}">Створити нову заявку</a>
+  <div class="col-sm-12 flex-column d-flex stretch-card">
+    <div class="row">
+      {% for day in duty_now.employee.vacation_days.all %}
+        <div class="col-lg-3 d-flex grid-margin stretch-card">
+          <div class="card bg-primary">
+            <div class="card-body text-white">
+              <h2 class="font-weight-bold mb-3">
+                {% if day.days %} {{ day.days }} дні(в) {% else %} 0 днів {% endif %}
+              </h2>
+              <div class="progress mb-3">
+                <div class="progress-bar  bg-warning" role="progressbar"
+                     style="width: {% if day.days %}{{ day.days|calculate_percentage:24 }}{% else %}0{% endif %}%;"
+                     aria-valuenow="{% if day.days %}{{ day.days }}{% else %} 0 {% endif %}"
+                     aria-valuemin="0" aria-valuemax="24"></div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between">
+                <p class="pb-0 mb-0 font-weight-bold">Використано відпустки</p>
+                <i class="mdi mdi-beach mdi-36px"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+      {% for summary in leave_type_days_summary %}
+        <div class="col-lg-3 d-flex grid-margin stretch-card">
+          <div class="card sale-visit-statistics-border">
+            <div class="card-body">
+              <h2 class="text-dark mb-2 font-weight-bold">
+                {{ summary.total_days }} дні(в)
+              </h2>
+              <h4 class="card-title mb-2">{{ summary.full_title }}</h4>
+              <small class="text-muted"></small>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="row">
+    {# Vacation #}
+    <div class="col-lg-8 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Список заявок на відпустку</h4>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+              <tr>
+                <th>№</th>
+                <th>Від</th>
+                <th>До</th>
+                <th>Тип</th>
+                <th>Днів</th>
+                <th>Статус</th>
+                <th>Докладно</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for leave_request in leave_requests %}
+                <tr>
+                  <td><a href="{% url 'vacation:leave_request_detail' leave_request.pk %}">{{ leave_request.pk }}</a>
+                  </td>
+                  <td>{{ leave_request.start_date|date:"d E Y" }}</td>
+                  <td>{{ leave_request.end_date|date:"d E Y" }}</td>
+                  <td>{{ leave_request.leave_type }}</td>
+                  <td class="text-primary">
+                    {{ leave_request.number_of_days }}
+                  </td>
+                  <td>
+                    {% if leave_request.status == "approved" %}
+                      <label class="badge badge-success">{{ leave_request.status }}</label>
+                    {% elif leave_request.status == "pending" %}
+                      <label class="badge badge-warning">{{ leave_request.status }}</label>
+                    {% elif leave_request.status == "saved" %}
+                      <label class="badge badge-dark">{{ leave_request.status }}</label>
+                    {% elif leave_request.status == "rejected" %}
+                      <label class="badge badge-danger">{{ leave_request.status }}</label>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <a href="{% url 'vacation:leave_request_detail' leave_request.pk %}"
+                         class="btn btn-rounded btn-outline-linkedin">Докладно</a>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td><h4 class="text-muted mb-2">Немає запитів на відпустку</h4></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            <a href="{% url 'vacation:leave_request_create' %}">
+              Створити нову заявку
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {# Duty #}
+    <div class="col-sm-4 flex-column d-flex stretch-card">
+      <div class="row flex-grow">
+        <div class="col-sm-12 grid-margin stretch-card">
+          <div class="card">
+            <div class="card-body">
+              <div class="row">
+                <div class="col-lg-8">
+                  <h3 class="card-title">
+                    Черговий цими вихідними:
+                  </h3>
+                  {% if duty_now %}
+                    <ul class="list-star">
+                      <li>{{ duty_now.start_date|date:"l: d E Y" }}</li>
+                      <li>{{ duty_now.end_date|date:"l: d E Y" }}</li>
+                    </ul>
+                    <div class="d-lg-flex align-items-baseline mb-3">
+                      <h3 class="text-dark font-weight-bold">{{ duty_now.employee }}</h3>
+                    </div>
+                    <p>
+                      <button class="btn btn-outline-dark btn-icon-text">
+                        <i class="mdi mdi-cellphone-iphone btn-icon-prepend mdi-36px"></i>
+                        <span class="d-inline-block text-left">
+                            <small class="font-weight-light d-block">Для звʼязку!</small>
+                            {{ duty_now.employee.phone }}
+                          </span>
+                      </button>
+                    </p>
+                    </div>
+                    <div class="col-lg-4">
+                      <div class="position-relative">
+                        <img src="{{ duty_now.employee.photo.url }}" class="w-100" alt="">
+                        <div class="live-info badge badge-success"><i class="mdi mdi-worker"></i>Duty</div>
+                      </div>
+                    </div>
+                  {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
+          

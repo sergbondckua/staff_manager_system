@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum, Value, CharField, F
+from django.db.models.functions import Concat
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -49,8 +50,38 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        duty_now = DutyRoster.objects.order_by("pk").last()  # Current duty
+
+        # Current duty
+        duty_now = DutyRoster.objects.order_by("pk").last()
         context["duty_now"] = duty_now if duty_now else None
+
+        # Calculate the total number of days for each type of vacation
+        leave_type_days_summary = (
+            LeaveRequest.objects.filter(
+                employee=self.request.user,
+                status=StatusRequestChoices.APPROVED,
+            )
+            .values(
+                "leave_type__title",
+                "leave_type__parent__title",
+                "leave_type__pk"
+            )
+            .annotate(
+                total_days=Sum("number_of_days"),
+                full_title=Concat(
+                    "leave_type__parent__title",
+                    Value(" - "),
+                    "leave_type__title",
+                    output_field=CharField(),
+                ),
+                pk=F("leave_type__pk"),
+            )
+        )
+        # Replace the full_title value if leave_type has no parent
+        for summary in leave_type_days_summary:
+            if summary["leave_type__parent__title"] is None:
+                summary["full_title"] = summary["leave_type__title"]
+        context["leave_type_days_summary"] = leave_type_days_summary
         return context
 
 

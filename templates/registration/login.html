@@ -1,9 +1,6 @@
 {% extends "registration/base.html" %}
 {% load static %}
 {% load i18n %}
-<!DOCTYPE html>
-
-
 
 
 {% block title %}LogIn{% endblock %}
@@ -20,7 +17,7 @@
           {% csrf_token %}
           {{ form.username }}
           {{ form.password }}
-          <button type="submit">Login</button>
+          <button class="btn btn-rounded btn-dribbble" type="submit">Login</button>
         </form>
       </div>
     </div>

@@ -38,7 +38,9 @@ class UserLeaveRequestMixin(LoginRequiredMixin):
     """Mixin to filter leave requests by the current user."""
 
     def get_queryset(self):
-        return LeaveRequest.objects.filter(employee=self.request.user)
+        return LeaveRequest.objects.filter(
+            employee=self.request.user
+        ).order_by("-created_at")
 
 
 class LeaveRequestListView(UserLeaveRequestMixin, ListView):

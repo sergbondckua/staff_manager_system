@@ -39,7 +39,8 @@ class UserLeaveRequestMixin(LoginRequiredMixin):
 
     def get_queryset(self):
         return LeaveRequest.objects.filter(
-            employee=self.request.user
+            employee=self.request.user,
+            expired=False,
         ).order_by("-created_at")
 
 
@@ -53,18 +54,25 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Current duty
-        duty_now = DutyRoster.objects.order_by("pk").last()
-        context["duty_now"] = duty_now if duty_now else None
+        # Current date
+        today = timezone.now().date()
+        context["current_date"] = today
 
         # Currently on vacation
-        today = timezone.now().date()
         currently_on_leave = LeaveRequest.objects.filter(
             start_date__lte=today,
             end_date__gte=today,
             status=StatusRequestChoices.APPROVED,
         )
         context["currently_on_leave"] = currently_on_leave
+
+        # Current duty
+        duty_now = (
+            DutyRoster.objects.filter(start_date__gt=today)
+            .order_by("pk")
+            .last()
+        )
+        context["duty_now"] = duty_now if duty_now else None
 
         # Calculate the total number of days for each type of vacation
         leave_type_days_summary = (
@@ -87,6 +95,7 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
                 ),
                 pk=F("leave_type__pk"),
             )
+            .order_by("leave_type_id")
         )
         # Replace the full_title value if leave_type has no parent
         for summary in leave_type_days_summary:
@@ -257,10 +266,14 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         request_user = self.get_request_user()
+
         if not request_user:
             # Return an empty queryset if no user is found
             return LeaveRequest.objects.none()
-        return LeaveRequest.objects.filter(employee=request_user)
+
+        return LeaveRequest.objects.filter(
+            employee=request_user, expired=False
+        )
 
     def create(self, request, *args, **kwargs):
         """Handle the creation of a new vacation record with validation."""

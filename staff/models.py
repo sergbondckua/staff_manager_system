@@ -1,6 +1,8 @@
 import os
 import shutil
+from pathlib import Path
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
@@ -51,6 +53,7 @@ class Employee(AbstractUser):
         verbose_name=_("Photo"),
         blank=True,
         null=True,
+        default="staff_photos/no_photo/no_photo.png",
         upload_to=generate_path,
         help_text=_("Upload image: (PNG, JPEG, JPG)"),
     )

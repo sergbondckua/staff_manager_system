@@ -1,6 +1,11 @@
 import os
 from pathlib import Path
 
+from environs import Env
+
+env = Env()
+env.read_env()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,6 +39,10 @@ INSTALLED_APPS = [
     "django_celery_beat",
     "django_cleanup.apps.CleanupConfig",
     "simple_history",
+    "allauth",
+    "allauth.account",
+    "allauth.socialaccount",
+    "allauth.socialaccount.providers.telegram",
 ]
 
 MIDDLEWARE = [
@@ -43,6 +52,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
+    "allauth.account.middleware.AccountMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # installed mw
     "simple_history.middleware.HistoryRequestMiddleware",
@@ -61,10 +71,18 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "django.template.context_processors.request",  # allauth
             ],
         },
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+LOGIN_REDIRECT_URL = "/"
 
 WSGI_APPLICATION = "app.wsgi.application"
 
@@ -167,7 +185,26 @@ CELERY_RESULT_SERIALIZER = "json"
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
+
+# AllAuth configuration
+SOCIALACCOUNT_PROVIDERS = {
+    "telegram": {
+        "APP": {
+            "client_id": env.str("BOT_ID"),
+            "secret": env.str("BOT_TOKEN"),
+        },
+        "AUTH_PARAMS": {"auth_date_validity": 30},
+    }
+}
+
+CSRF_TRUSTED_ORIGINS = ["https://9ba2-94-240-164-0.ngrok-free.app"]
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+SOCIALACCOUNT_EMAIL_VERIFICATION = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
+SOCIALACCOUNT_ONLY = False
+
+SITE_ID = 1

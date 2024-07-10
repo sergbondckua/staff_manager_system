@@ -5,7 +5,7 @@ from celery import shared_task
 from django.db import transaction
 
 from common.enums import StatusRequestChoices
-from telegram.bot import bot
+from telegrambot.bot import bot
 
 logger = logging.getLogger(__name__)
 

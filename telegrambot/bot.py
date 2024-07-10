@@ -15,7 +15,7 @@ from aiogram.types import Message
 import aiohttp
 from environs import Env
 
-from telegram.state import VacationForm
+from telegrambot.state import VacationForm
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     #  My custom apps
     "staff.apps.StaffConfig",
     "vacation.apps.VacationConfig",
+    "telegrambot.apps.TelegrambotConfig",
     #  Installed apps
     "rest_framework",
     "django_celery_beat",
@@ -52,7 +53,7 @@ MIDDLEWARE = [
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
-    "allauth.account.middleware.AccountMiddleware",
+    "allauth.account.middleware.AccountMiddleware",  # allauth
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # installed mw
     "simple_history.middleware.HistoryRequestMiddleware",
@@ -82,7 +83,7 @@ AUTHENTICATION_BACKENDS = (
     "allauth.account.auth_backends.AuthenticationBackend",
 )
 
-LOGIN_REDIRECT_URL = "/"
+LOGIN_REDIRECT_URL = "/leave_requests"
 
 WSGI_APPLICATION = "app.wsgi.application"
 
@@ -191,6 +192,15 @@ REST_FRAMEWORK = {
 }
 
 # AllAuth configuration
+SOCIALACCOUNT_ADAPTER = "telegrambot.adapters.TelegramAccountAdapter"
+# SOCIALACCOUNT_PIPELINE = (
+#     "telegrambot.pipeline.check_telegram_id",
+#     "allauth.socialaccount.pipeline.social_auth.social_login",
+#     "allauth.socialaccount.pipeline.social_auth.associate_by_email",
+#     "allauth.socialaccount.pipeline.social_auth.load_extra_data",
+#     "allauth.socialaccount.pipeline.social_auth.save_social_account",
+# )
+
 SOCIALACCOUNT_PROVIDERS = {
     "telegram": {
         "APP": {
@@ -198,10 +208,16 @@ SOCIALACCOUNT_PROVIDERS = {
             "secret": env.str("BOT_TOKEN"),
         },
         "AUTH_PARAMS": {"auth_date_validity": 30},
-    }
+        "REQUEST_PERMISSIONS": [
+            "username",
+            "first_name",
+            "last_name",
+            "photo_url",
+        ],
+    },
 }
 
-CSRF_TRUSTED_ORIGINS = ["https://9ba2-94-240-164-0.ngrok-free.app"]
+CSRF_TRUSTED_ORIGINS = ["https://*.app"]
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True

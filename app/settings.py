@@ -193,14 +193,6 @@ REST_FRAMEWORK = {
 
 # AllAuth configuration
 SOCIALACCOUNT_ADAPTER = "telegrambot.adapters.TelegramAccountAdapter"
-# SOCIALACCOUNT_PIPELINE = (
-#     "telegrambot.pipeline.check_telegram_id",
-#     "allauth.socialaccount.pipeline.social_auth.social_login",
-#     "allauth.socialaccount.pipeline.social_auth.associate_by_email",
-#     "allauth.socialaccount.pipeline.social_auth.load_extra_data",
-#     "allauth.socialaccount.pipeline.social_auth.save_social_account",
-# )
-
 SOCIALACCOUNT_PROVIDERS = {
     "telegram": {
         "APP": {
@@ -216,7 +208,6 @@ SOCIALACCOUNT_PROVIDERS = {
         ],
     },
 }
-
 CSRF_TRUSTED_ORIGINS = ["https://*.app"]
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = True

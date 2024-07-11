@@ -1,11 +1,13 @@
 {% extends "base_generic.html" %}
+{% load crispy_forms_tags %}
 
 {% block content %}
   <h2>{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h2>
   <b>Використані дні відпустки:</b> {{ vacation_days_used }}
   <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+{#    {{ form.as_p }}#}
+    {% crispy form %}
     <button type="submit" name="save">Зберегти</button>
     <button type="submit" name="save_and_submit">Відправити на погодження</button>
 

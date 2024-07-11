@@ -44,6 +44,8 @@ INSTALLED_APPS = [
     "allauth.account",
     "allauth.socialaccount",
     "allauth.socialaccount.providers.telegram",
+    "crispy_forms",
+    "crispy_bootstrap4",
 ]
 
 MIDDLEWARE = [
@@ -165,6 +167,9 @@ LOGGING = {
     },
 }
 
+# Crispy
+CRISPY_TEMPLATE_PACK = "bootstrap4"
+
 # Disable the ability to revert to historical records provided by django-simple-history.
 # This prevents users from reverting changes through the admin interface.
 SIMPLE_HISTORY_REVERT_DISABLED = True
@@ -212,6 +217,7 @@ CSRF_TRUSTED_ORIGINS = ["https://*.app"]
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
-SOCIALACCOUNT_ONLY = False
+ACCOUNT_EMAIL_VERIFICATION = "none"
+SOCIALACCOUNT_ONLY = True
 
 SITE_ID = 1

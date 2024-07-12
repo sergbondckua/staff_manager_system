@@ -43,7 +43,9 @@ class LeaveRequestForm(forms.ModelForm):
     leave_type = LeaveTypeChoiceField(
         queryset=LeaveType.objects.all(),
         required=True,
-        widget=forms.Select,
+        widget=forms.Select(
+            attrs={"class": "form-control js-example-basic-single w-100"}
+        ),
         label=_("Reason"),
     )
 
@@ -62,7 +64,7 @@ class LeaveRequestForm(forms.ModelForm):
                     i: UKRAINIAN_MONTHS[i]
                     for i in range(timezone.now().month, 13)
                 },
-                attrs={"required": "True"},
+                attrs={"required": "True", "class": "form-control"},
             ),
             "end_date": forms.SelectDateWidget(
                 years=range(timezone.now().year, timezone.now().year + 1),
@@ -70,9 +72,11 @@ class LeaveRequestForm(forms.ModelForm):
                     i: UKRAINIAN_MONTHS[i]
                     for i in range(timezone.now().month, 13)
                 },
-                attrs={"required": "True"},
+                attrs={"required": "True", "class": "form-control"},
             ),
-            "comment": forms.Textarea(attrs={"rows": "5", "cols": "33"}),
+            "comment": forms.Textarea(
+                attrs={"rows": "5", "cols": "33", "class": "form-control"}
+            ),
         }
 
     def __init__(self, *args, **kwargs):

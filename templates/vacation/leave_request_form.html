@@ -2,15 +2,23 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-  <h2>{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h2>
-  <b>Використані дні відпустки:</b> {{ vacation_days_used }}
-  <form method="post">
-    {% csrf_token %}
-{#    {{ form.as_p }}#}
-    {% crispy form %}
-    <button type="submit" name="save">Зберегти</button>
-    <button type="submit" name="save_and_submit">Відправити на погодження</button>
-
-  </form>
+  <div class="col-md-6 grid-margin stretch-card">
+    <div class="card">
+      <div class="card-body">
+        <h4 class="card-title">{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h4>
+        <p class="card-description">
+          Використані на зараз дні відпустки: <b>{{ vacation_days_used }}</b>
+        </p>
+        <form method="post" class="forms-sample">
+          {% csrf_token %}
+          <div class="form-group">
+            {{ form.as_p }}
+          </div>
+          <button type="submit" class="btn btn-dark me-2" name="save">Зберегти</button>
+          <button type="submit" class="btn btn-primary me-2" name="save_and_submit">Відправити на погодження</button>
+        </form>
+      </div>
+    </div>
+  </div>
   <a href="{% url 'vacation:leave_request_list' %}">Повернутися до списку</a>
 {% endblock %}

@@ -44,9 +44,9 @@ class LeaveRequestForm(forms.ModelForm):
         queryset=LeaveType.objects.all(),
         required=True,
         widget=forms.Select(
-            attrs={"class": "form-control js-example-basic-single w-100"}
+            attrs={"class": "form-control js-example-basic-single w-25"}
         ),
-        label=_("Reason"),
+        label=_("Leave type"),
     )
 
     class Meta:
@@ -64,7 +64,10 @@ class LeaveRequestForm(forms.ModelForm):
                     i: UKRAINIAN_MONTHS[i]
                     for i in range(timezone.now().month, 13)
                 },
-                attrs={"required": "True", "class": "form-control"},
+                attrs={
+                    "required": "True",
+                    "class": "select-date form-control",
+                },
             ),
             "end_date": forms.SelectDateWidget(
                 years=range(timezone.now().year, timezone.now().year + 1),
@@ -72,7 +75,10 @@ class LeaveRequestForm(forms.ModelForm):
                     i: UKRAINIAN_MONTHS[i]
                     for i in range(timezone.now().month, 13)
                 },
-                attrs={"required": "True", "class": "form-control"},
+                attrs={
+                    "required": "True",
+                    "class": "select-date form-control",
+                },
             ),
             "comment": forms.Textarea(
                 attrs={"rows": "5", "cols": "33", "class": "form-control"}
@@ -96,12 +102,12 @@ class LeaveRequestForm(forms.ModelForm):
         if start_date and end_date:
             if end_date <= start_date:
                 raise forms.ValidationError(
-                    _("End date cannot be earlier than start date")
+                    _("End date cannot be earlier than start date.")
                 )
             # Validate that start date is not in the past
             elif start_date < timezone.now().date():
                 raise forms.ValidationError(
-                    _("Start date cannot be later than current date")
+                    _("Start date cannot be later than current date.")
                 )
             # Check for overlapping leave requests for the employee
             overlapping_requests = LeaveRequest.objects.filter(

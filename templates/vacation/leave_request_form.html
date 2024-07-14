@@ -1,22 +1,61 @@
 {% extends "base_generic.html" %}
-{% load crispy_forms_tags %}
+
 
 {% block content %}
-  <div class="col-md-6 grid-margin stretch-card">
+  <div class="col-md-9 grid-margin grid-margin-md-5 stretch-card">
     <div class="card">
       <div class="card-body">
-        <h4 class="card-title">{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову заявку{% endif %}</h4>
+        <h4 class="card-title">{% if form.instance.pk %}Редагувати заявку #{{ form.instance.id }}{% else %}Створити нову
+          заявку{% endif %}</h4>
         <p class="card-description">
           Використані на зараз дні відпустки: <b>{{ vacation_days_used }}</b>
         </p>
-        <form method="post" class="forms-sample">
+        <!-- Form -->
+        <form method="post" class="form-inline">
           {% csrf_token %}
+        <!-- Alerts form -->
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mt-2">
+              <ul class="list-ticked">
+                {% for error in form.non_field_errors %}
+                  <li><i class="mdi mdi-message-alert mdi-24px"></i> {{ error }}</li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+          <!-- End Alerts -->
+          <div class="form-group row">
+            <label class="col-sm-3">
+              <i class="mdi mdi-spellcheck mdi-18px"></i> Оберіть тип відпустки:
+            </label>
+            {{ form.leave_type }}
+          </div>
+              <div class="form-group row">
+                <label class="col-sm-3">
+                  <i class="mdi mdi-calendar-clock mdi-18px"></i> Від:
+                </label>
+                <div class="col-sm-3">
+                  {{ form.start_date }}
+                </div>
+              </div>
+              <div class="form-group row">
+                <label class="col-sm-3">
+                  <i class="mdi mdi-calendar mdi-18px"></i> До:
+                </label>
+                <div class="col-sm-9">
+                  {{ form.end_date }}
+                </div>
+              </div>
           <div class="form-group">
-            {{ form.as_p }}
+            <label>
+              <i class="mdi mdi-comment-text-outline mdi-18px"></i> Коментар:
+            </label>
+            {{ form.comment }}
           </div>
           <button type="submit" class="btn btn-dark me-2" name="save">Зберегти</button>
           <button type="submit" class="btn btn-primary me-2" name="save_and_submit">Відправити на погодження</button>
         </form>
+        <!-- End Form -->
       </div>
     </div>
   </div>

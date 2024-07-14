@@ -1,7 +1,20 @@
-{% load static %}
+{% load static i18n allauth %}
 
-{% if messages %}
-  {% for message in messages %}
-    {{ message }}
-  {% endfor %}
-{% endif %}
+<div class="flex-grow-1 bg-body-info d-flex flex-column justify-content-center">
+  <div class="flex-grow-0 flex-shrink-0 container">
+    <div class="row justify-content-md-center">
+      <div class="col col-lg-6">
+        {% if messages %}
+          {% for message in messages %}
+            {% element alert level=message.tags %}
+              {% slot message %}
+                {{ message }}
+              {% endslot %}
+            {% endelement %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+

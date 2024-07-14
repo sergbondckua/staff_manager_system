@@ -1,0 +1,14 @@
+{% extends "allauth/layouts/manage.html" %}
+{% load static allauth %}
+
+{% block head_title %}Профіль-редагування{% endblock %}
+
+
+{% block content %}
+  <img src="{{ employee.photo.url }}" alt="avatar">
+<form method="post" class="custom-form" action="">
+              {% csrf_token %}
+              {{ form.as_p }}
+              <button type="submit" class="btn-success" >Зберегти</button>
+            </form>
+{% endblock %}

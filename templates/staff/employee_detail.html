@@ -1,0 +1,11 @@
+{% extends "allauth/layouts/manage.html" %}
+{% load static allauth %}
+
+
+{% block head_title %}Профіль-інфо{% endblock %}
+
+
+{% block content %}
+  <img src="{{ employee.photo.url }}" alt="avatar">
+  {{ employee }}
+{% endblock content %}

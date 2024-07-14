@@ -68,7 +68,7 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
 
         # Current duty
         duty_now = (
-            DutyRoster.objects.filter(start_date__gt=today)
+            DutyRoster.objects.filter(end_date__gte=today)
             .order_by("pk")
             .last()
         )

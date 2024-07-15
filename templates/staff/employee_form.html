@@ -5,10 +5,17 @@
 
 
 {% block content %}
-  <img src="{{ employee.photo.url }}" alt="avatar">
-<form method="post" class="custom-form" action="">
-              {% csrf_token %}
-              {{ form.as_p }}
-              <button type="submit" class="btn-success" >Зберегти</button>
-            </form>
+  {#  <img src="{{ employee.photo.url }}" alt="avatar">#}
+        <form method="post" class="form-inline">
+          {% csrf_token %}
+          {{ form.first_name }}
+          {{ form.last_name }}
+          {{ form.email }}
+          {{ form.phone }}
+          {{ form.job_title }}
+          {{ form.date_of_birth }}
+          {{ form.telegram_id }}
+          {{ form.photo }}
+          <button type="submit" class="btn-success">Зберегти</button>
+        </form>
 {% endblock %}

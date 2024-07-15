@@ -5,17 +5,72 @@
 
 
 {% block content %}
-  {#  <img src="{{ employee.photo.url }}" alt="avatar">#}
-        <form method="post" class="form-inline">
-          {% csrf_token %}
-          {{ form.first_name }}
-          {{ form.last_name }}
-          {{ form.email }}
-          {{ form.phone }}
-          {{ form.job_title }}
-          {{ form.date_of_birth }}
-          {{ form.telegram_id }}
-          {{ form.photo }}
-          <button type="submit" class="btn-success">Зберегти</button>
-        </form>
+  <h4 class="card-title">Змінити профіль</h4>
+  <form class="auth-form-light">
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-face"></i> Імʼя
+      </label>
+      <div class="col-sm-9">
+        {{ form.first_name }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-face-profile"></i> Прізвище
+      </label>
+      <div class="col-sm-9">
+        {{ form.last_name }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-email-outline"></i> Email
+      </label>
+      <div class="col-sm-9">
+        {{ form.email }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-phone"></i> Телефон
+      </label>
+      <div class="col-sm-9">
+        {{ form.phone }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-worker"></i> Посада
+      </label>
+      <div class="col-sm-9">
+        {{ form.job_title }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-calendar-check"></i> Дата народження
+      </label>
+      <div class="col-sm-9">
+        {{ form.date_of_birth }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-telegram"></i> Телеграм ID
+      </label>
+      <div class="col-sm-9">
+        {{ form.telegram_id }}
+      </div>
+    </div>
+    <div class="form-group row">
+      <label class="col-sm-3 col-form-label">
+        <i class="mdi mdi-image-filter"></i> Фото
+      </label>
+      <div class="col-sm-9">
+        {{ form.photo }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary me-2">Зберегти</button>
+  </form>
 {% endblock %}

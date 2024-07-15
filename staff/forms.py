@@ -27,13 +27,19 @@ class EmployeeForm(forms.ModelForm):
                 attrs={"class": "form-control"},
             ),
             "email": forms.EmailInput(
-                attrs={"class": "form-control", "placeholder": "Email"}
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "Email",
+                    "readonly": True,
+                }
             ),
             "job_title": forms.TextInput(
                 attrs={"class": "form-control"},
             ),
             "date_of_birth": forms.SelectDateWidget(
-                years=range(timezone.now().year - 70, timezone.now().year - 18),
+                years=range(
+                    timezone.now().year - 70, timezone.now().year - 18
+                ),
                 attrs={
                     "style": "width: auto; display: inline-block;",
                     "required": "True",
@@ -45,7 +51,7 @@ class EmployeeForm(forms.ModelForm):
                 attrs={"class": "form-control"},
             ),
             "telegram_id": forms.TextInput(
-                attrs={"class": "form-control", "readonly": "True"},
+                attrs={"class": "form-control", "readonly": True},
             ),
             "photo": forms.ClearableFileInput(
                 attrs={"class": "form-control"},

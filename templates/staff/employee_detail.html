@@ -6,6 +6,38 @@
 
 
 {% block content %}
-{#  <img src="{{ employee.photo.url }}" alt="avatar">#}
-  {{ employee }}
+  <div class="row">
+    <div class="col-lg-4 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Фото</h4>
+          <p><img class="w-50" src="{{ employee.photo.url }}" alt="avatar"></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Персональна інформація</h4>
+          <p>{{ employee }}</p>
+          <p>{{ employee.date_of_birth }}</p>
+          <p>{{ employee.job_title }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-3 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Контактна інформація</h4>
+          <address>
+            <p class="font-weight-bold">{{ employee.email }}</p>
+            <p>{{ employee.phone }}</p>
+            <p>{{ employee.telegram_id }}</p>
+          </address>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock content %}

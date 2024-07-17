@@ -9,7 +9,7 @@
         <div class="card-body">
           <nav class="nav nav-pills flex-column flex-sm-row justify-content-center">
             <a class="nav-link {% if request.resolver_match.url_name == 'account_profile' %}active{% endif %}"
-               href="{% url 'staff:account_profile' %}">Профіль-інфо</a>
+               href="{% url 'staff:account_profile' %}">Профіль</a>
             <a class="nav-link {% if request.resolver_match.url_name == 'account_profile_update' %}active{% endif %}"
                href="{% url 'staff:account_profile_update' %}">Змінити профіль</a>
             {% url 'account_email' as email_url %}
@@ -46,62 +46,21 @@
     <div class="col-lg-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-{#          <div class="flex-grow-1 d-flex flex-row">#}
-            {#                        <aside class="col-md-2 text-bgs-light">#}
-            {#                          <ul class="p-3 nav nav-pills flex-column">#}
-            {#                            {% url 'account_email' as email_url %}#}
-            {#                            {% if email_url %}#}
-            {#                              <li class="nav-item">#}
-            {#                                <a class="{% block nav_class_email %}nav-link text-secondary{% endblock %}"#}
-            {#                                   href="{% url 'account_email' %}">Змінити Email</a>#}
-            {#                              </li>#}
-            {#                            {% endif %}#}
-            {#                            {% url 'account_change_password' as change_password_url %}#}
-            {#                            {% if change_password_url %}#}
-            {#                              <li class="nav-item">#}
-            {#                                <a class="{% block nav_class_password %}nav-link{% endblock %}"#}
-            {#                                   href="{% url 'account_change_password' %}">Змінити пароль</a>#}
-            {#                              </li>#}
-            {#                            {% endif %}#}
-            {#                            <li class="nav-item">#}
-            {#                              <a class="{% block nav_class_socialaccount %}nav-link{% endblock %}"#}
-            {#                                 href="{% url 'socialaccount_connections' %}">Приєднані акаунти</a>#}
-            {#                            </li>#}
-            {#                            {% url 'mfa_index' as mfa_index_url %}#}
-            {#                            {% if mfa_index_url %}#}
-            {#                              <li class="nav-item">#}
-            {#                                <a class="{% block nav_class_mfa %}nav-link{% endblock %}"#}
-            {#                                   href="{% url 'mfa_index' %}">Two-Factor Authentication</a>#}
-            {#                              </li>#}
-            {#                            {% endif %}#}
-            {#                            {% url 'usersessions_list' as usersessions_list_url %}#}
-            {#                            {% if usersessions_list_url %}#}
-            {#                              <li class="nav-item">#}
-            {#                                <a class="{% block nav_class_usersessions %}nav-link{% endblock %}"#}
-            {#                                   href="{{ usersessions_list_url }}">Sessions</a>#}
-            {#                              </li>#}
-            {#                            {% endif %}#}
-            {#                          </ul>#}
-            {#                        </aside>#}
-            <main class="col-md-10">
-              <div class="container">
-                {% if messages %}
-                  <div class="pt-4">
-                    {% for message in messages %}
-                      {% element alert level=message.tags %}
-                        {% slot message %}
-                          {{ message }}
-                        {% endslot %}
-                      {% endelement %}
-                    {% endfor %}
-                  </div>
-                {% endif %}
-                {% block content %}{% endblock %}
-              </div>
-            </main>
-{#          </div>#}
+          {% if messages %}
+            <div class="pt-4">
+              {% for message in messages %}
+                {% element alert level=message.tags %}
+                  {% slot message %}
+                    {{ message }}
+                  {% endslot %}
+                {% endelement %}
+              {% endfor %}
+            </div>
+          {% endif %}
+          {% block content %}{% endblock %}
         </div>
       </div>
     </div>
   </div>
+
 {% endblock %}

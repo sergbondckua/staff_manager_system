@@ -15,3 +15,4 @@ environs==11.0.0
 Markdown==3.6  # Markdown support for the browsable API.
 pillow==10.3.0
 redis==5.0.7
+requests==2.32.3

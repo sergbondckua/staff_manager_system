@@ -28,7 +28,6 @@ class LeaveRequestUserSerializer(serializers.ModelSerializer):
     expired = serializers.BooleanField(default=False, read_only=True)
     number_of_days = serializers.IntegerField(read_only=True)
     employee = serializers.StringRelatedField()
-    # leave_type = serializers.StringRelatedField()
     status = serializers.ChoiceField(
         choices=StatusRequestChoices,
         read_only=True,

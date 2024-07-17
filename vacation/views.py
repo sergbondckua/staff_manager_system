@@ -58,6 +58,14 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
         today = timezone.now().date()
         context["current_date"] = today
 
+        # Upcoming Leave
+        upcoming_leaves = LeaveRequest.objects.filter(
+            employee=self.request.user,
+            start_date__gt=today,
+            status=StatusRequestChoices.APPROVED,
+        )
+        context["upcoming_leaves"] = upcoming_leaves
+
         # Currently on vacation
         currently_on_leave = LeaveRequest.objects.filter(
             start_date__lte=today,

@@ -49,7 +49,7 @@
                     {% if day.days %}{{ day.days|calculate_percentage:31 }}{% else %}0{% endif %}%
                     Використано відпустки
                   </p>
-                  <i class="mdi mdi-beach mdi-36px"></i>
+                  <i class="icon-lg mdi mdi-beach"></i>
                 </div>
               </div>
             </div>
@@ -75,7 +75,7 @@
                 <p class="pb-0 mb-0 font-weight-bold">
                   Використано
                 </p>
-                <i class="mdi mdi mdi-clippy mdi-36px"></i>
+                <i class="icon-lg mdi mdi mdi-clippy"></i>
               </div>
             </div>
           </div>
@@ -83,7 +83,7 @@
       {% endfor %}
     </div>
   </div>
-   <!-- Currently leaves -->
+  <!-- Currently leaves -->
   <div class="row">
     <div class="col-lg-6 grid-margin stretch-card">
       <div class="card">
@@ -229,13 +229,17 @@
               {% endfor %}
               </tbody>
             </table>
-            <a href="{% url 'vacation:leave_request_create' %}">
-              Створити нову заявку
+            <a class="btn btn-outline-inverse-success btn-rounded btn-sm btn-icon-text mt-5"
+               href="{% url 'vacation:leave_request_create' %}">
+              <i class="mdi mdi-playlist-plus mdi-24px"></i> Створити нову заявку
             </a>
           </div>
         </div>
       </div>
     </div>
+    {% for leave in upcoming_leaves %}
+      <i class="icon-lg mdi mdi-briefcase"></i> {{ leave.start_date }} - {{ leave.number_of_days }} дні(в)
+    {% endfor %}
   </div>
 {% endblock %}
           

@@ -10,6 +10,7 @@ class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
         fields = (
+            "username",
             "first_name",
             "last_name",
             "email",
@@ -20,11 +21,14 @@ class EmployeeForm(forms.ModelForm):
             "photo",
         )
         widgets = {
+            "username": forms.TextInput(
+                attrs={"class": "form-control", "readonly": True},
+            ),
             "first_name": forms.TextInput(
-                attrs={"class": "form-control"},
+                attrs={"class": "form-control", "required": True},
             ),
             "last_name": forms.TextInput(
-                attrs={"class": "form-control"},
+                attrs={"class": "form-control", "required": True},
             ),
             "email": forms.EmailInput(
                 attrs={
@@ -34,7 +38,7 @@ class EmployeeForm(forms.ModelForm):
                 }
             ),
             "job_title": forms.TextInput(
-                attrs={"class": "form-control"},
+                attrs={"class": "form-control", "required": True},
             ),
             "date_of_birth": forms.SelectDateWidget(
                 years=range(
@@ -42,13 +46,13 @@ class EmployeeForm(forms.ModelForm):
                 ),
                 attrs={
                     "style": "width: auto; display: inline-block;",
-                    "required": "True",
+                    "required": True,
                     "type": "date",
                     "class": "form-select",
                 },
             ),
             "phone": forms.TextInput(
-                attrs={"class": "form-control"},
+                attrs={"class": "form-control", "required": True},
             ),
             "telegram_id": forms.TextInput(
                 attrs={"class": "form-control", "readonly": True},

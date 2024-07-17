@@ -7,34 +7,31 @@
 
 {% block content %}
   <div class="row">
+  <!--Photo -->
     <div class="col-lg-4 grid-margin stretch-card">
-      <div class="card">
-        <div class="card-body">
-          <h4 class="card-title">Фото</h4>
-          <p><img class="w-50" src="{{ employee.photo.url }}" alt="avatar"></p>
-        </div>
-      </div>
+      <p><img class="w-50" src="{{ employee.photo.url }}" alt="avatar"></p>
     </div>
-
+  <!-- Personal information -->
     <div class="col-lg-4 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Персональна інформація</h4>
+          <p>{{ employee.username }}</p>
           <p>{{ employee }}</p>
           <p>{{ employee.date_of_birth }}</p>
           <p>{{ employee.job_title }}</p>
         </div>
       </div>
     </div>
-
-    <div class="col-lg-3 grid-margin stretch-card">
+    <!-- Contact information -->
+    <div class="col-lg-4 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Контактна інформація</h4>
-          <address>
-            <p class="font-weight-bold">{{ employee.email }}</p>
-            <p>{{ employee.phone }}</p>
-            <p>{{ employee.telegram_id }}</p>
+          <address class="text-info">
+            <p class="font-weight-bold"><i class="mdi mdi-email-outline"></i> {{ employee.email }}</p>
+            <p><i class="mdi mdi-phone"></i> {{ employee.phone }}</p>
+            <p><i class="mdi mdi-telegram"></i> {{ employee.telegram_id }}</p>
           </address>
         </div>
       </div>

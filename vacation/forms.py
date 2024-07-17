@@ -44,7 +44,7 @@ class LeaveRequestForm(forms.ModelForm):
         queryset=LeaveType.objects.all(),
         required=True,
         widget=forms.Select(
-            attrs={"class": "form-control js-example-basic-single w-25"}
+            attrs={"class": "form-control w-25"}
         ),
         label=_("Leave type"),
     )

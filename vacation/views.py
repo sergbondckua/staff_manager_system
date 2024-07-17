@@ -6,6 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.views.generic import (
+    TemplateView,
     ListView,
     DetailView,
     CreateView,
@@ -44,12 +45,10 @@ class UserLeaveRequestMixin(LoginRequiredMixin):
         ).order_by("-created_at")
 
 
-class LeaveRequestListView(UserLeaveRequestMixin, ListView):
-    """View for displaying a list of leave requests."""
+class DashBoardView(UserLeaveRequestMixin, TemplateView):
+    """Dashboard view."""
 
-    model = LeaveRequest
-    template_name = "vacation/leave_request_list.html"
-    context_object_name = "leave_requests"
+    template_name = "vacation/dashboard.html"
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -113,6 +112,14 @@ class LeaveRequestListView(UserLeaveRequestMixin, ListView):
         return context
 
 
+class LeaveRequestListView(UserLeaveRequestMixin, ListView):
+    """View for displaying a list of leave requests."""
+
+    model = LeaveRequest
+    template_name = "vacation/leave_request_list.html"
+    context_object_name = "leave_requests"
+
+
 class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
     """View to display the details of an individual leave request."""
 
@@ -126,7 +133,7 @@ class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
         leave_request = self.get_object()
         employee = leave_request.employee
         vacation_days_used = (
-            VacationUsed.objects.get(employee=employee).days or 0
+                VacationUsed.objects.get(employee=employee).days or 0
         )
         context["vacation_days_used"] = vacation_days_used
         return context
@@ -326,9 +333,9 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if (
-            "status" in serializer.validated_data
-            and serializer.validated_data["status"]
-            == StatusRequestChoices.PENDING
+                "status" in serializer.validated_data
+                and serializer.validated_data["status"]
+                == StatusRequestChoices.PENDING
         ):
             return Response(
                 {

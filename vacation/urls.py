@@ -2,12 +2,14 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from vacation.views import (
+    DashBoardView,
     LeaveRequestListView,
     LeaveRequestDetailView,
     LeaveRequestCreateView,
     LeaveRequestUpdateView,
     LeaveRequestDeleteView,
-    LeaveRequestUserViewSet, LeaveTypeViewSet,
+    LeaveRequestUserViewSet,
+    LeaveTypeViewSet,
 )
 
 router = DefaultRouter()
@@ -17,6 +19,7 @@ router.register(
 router.register(r"leave-type", LeaveTypeViewSet, basename="leave-type")
 
 urlpatterns = [
+    path("", DashBoardView.as_view(), name="dashboard"),
     path(
         "leave_requests/",
         LeaveRequestListView.as_view(),

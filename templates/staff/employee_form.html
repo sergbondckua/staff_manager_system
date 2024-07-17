@@ -7,6 +7,7 @@
 {% block content %}
   <h4 class="card-title">Змінити профіль</h4>
   <form method="post" class="auth-form-light">
+    {% csrf_token %}
     <!-- Alerts form -->
     {% if form.non_field_errors %}
       <div class="alert alert-danger mt-2">
@@ -18,6 +19,7 @@
       </div>
     {% endif %}
     <!-- End Alerts -->
+    <!-- Profile form -->
     <div class="form-group row">
       <label class="col-sm-3 col-form-label">
         <i class="mdi mdi-login-variant"></i> Імʼя користувача
@@ -94,4 +96,5 @@
     </div>
     <button type="submit" class="btn btn-primary me-2">Зберегти</button>
   </form>
+  <!-- End Profile form -->
 {% endblock %}

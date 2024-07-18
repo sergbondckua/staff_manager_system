@@ -56,12 +56,12 @@
           </div>
         {% endif %}
       {% endfor %}
-      {# Leave of types #}
+      <!-- Leave of types -->
       {% for summary in leave_type_days_summary %}
         <div
-            class="{% if leave_type_days_summary|length > 2 %}col-lg-3
+            class="{% if leave_type_days_summary|length > 2 %}col-lg-2
             {% elif leave_type_days_summary|length > 3 %}col-lg-2
-            {% else %}col-lg-4{% endif %} d-flex grid-margin stretch-card">
+            {% else %}col-lg-2{% endif %} d-flex grid-margin stretch-card">
           <div
               class="card {% if forloop.counter|divisibleby:2 %}
               bg-gradient-success sale-visit-statistics-border{% elif forloop.counter|divisibleby:3 %}
@@ -81,11 +81,75 @@
           </div>
         </div>
       {% endfor %}
+      <!-- End Leave of types -->
+      <!-- Number of days since last vacation -->
+      <div class="col-lg-2 grid-margin stretch-card">
+        <div class="card">
+          <div class="card-body pb-0">
+            <div class="d-flex align-items-center justify-content-between">
+              <h2 class="text-info font-weight-bold">
+                {% if user_last_vacation.end_date|date_diff:current_date < 0 %}
+                  0
+                {% else %}
+                  {{ user_last_vacation.end_date|date_diff:current_date }} дні(в).
+                {% endif %}
+              </h2>
+              <i class="mdi mdi-camera-timer mdi-36px text-dark"></i>
+            </div>
+          </div>
+          <canvas id="invoices"></canvas>
+          <div class="line-chart-row-title">Минуло з останньої відпустки</div>
+        </div>
+      </div>
+      <!-- End last vacation -->
     </div>
   </div>
-  <!-- Currently leaves -->
   <div class="row">
-    <div class="col-lg-6 grid-margin stretch-card">
+    <!-- Upcoming leaves -->
+    <div class="col-lg-4 grid-margin stretch-card">
+      <div class="card">
+        <div class="card-body">
+          <h4 class="card-title">Мої погоджені відпустки</h4>
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+              <tr>
+                <th>№</th>
+                <th>Від</th>
+                <th>До</th>
+                <th>Дні</th>
+              </tr>
+              </thead>
+              <tbody>
+              {% for leave in upcoming_leaves %}
+                <tr>
+                  <td>
+                    <a href="{% url 'vacation:leave_request_detail' leave.pk %}">{{ leave.pk }}
+                    </a>
+                  </td>
+                  <td class="text-success">{{ leave.start_date|date:"d E Y" }}</td>
+                  <td class="text-danger">{{ leave.end_date|date:"d E Y" }}</td>
+                  <td class="text-primary">{{ leave.number_of_days }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td><h4 class="text-muted mb-2">У Вас немає затверджених, запланованих відпусток.</h4></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+            <div class="text-end mt-5">
+              <a class="btn btn-link btn-icon-text" href="{% url 'vacation:leave_request_list' %}">
+                Дивитись всі запити <i class="mdi mdi-play btn-icon-append "></i>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Upcoming leaves -->
+    <!-- Currently leaves -->
+    <div class="col-lg-4 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
           <h4 class="card-title">Співробітники, які зараз у відпустці.</h4>
@@ -127,8 +191,31 @@
         </div>
       </div>
     </div>
-    {# Duty #}
-    <div class="col-sm-6 flex-column d-flex stretch-card">
+    <!-- Congratulations to leave -->
+    {% if current_user_on_leave %}
+      <div class="col-lg-4 mb-3 mb-lg-0">
+        <div class="card congratulation-bg text-center">
+          <div class="card-body pb-0">
+            <img class="w-25" src="{{ request.user.photo.url }}" alt="">
+            <h2 class="mt-3 text-white mb-3 font-weight-bold">Вітаю,
+              {{ request.user.first_name }}!</h2>
+            <p>
+              Назараз ви у відпустці,
+            </p>
+            <h2 class="text-danger">
+              {% if current_user_on_leave.start_date|date_diff:current_date == 0 %}
+                перший день
+              {% else %}
+                {{ current_user_on_leave.start_date|date_diff:current_date }} дні(в).
+              {% endif %}
+            </h2>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+    <!-- End congratulations -->
+    <!-- Duty now -->
+    <div class="col-sm-4 flex-column d-flex stretch-card">
       <div class="row flex-grow">
         <div class="col-sm-12 grid-margin stretch-card">
           <div class="card">
@@ -174,68 +261,10 @@
         </div>
       </div>
     </div>
+    <!-- End Duty now -->
   </div>
 
   <div class="row">
-    {# Vacation #}
-    <div class="col-lg-12 grid-margin stretch-card">
-      <div class="card">
-        <div class="card-body">
-          <h4 class="card-title">Затверджені, заплановані відпустки</h4>
-          <div class="table-responsive">
-            <table class="table table-hover">
-              <thead>
-              <tr>
-                <th>№</th>
-                <th>Від</th>
-                <th>До</th>
-                <th>Тип</th>
-                <th>Днів</th>
-                <th>Статус</th>
-                <th>Докладно</th>
-              </tr>
-              </thead>
-              <tbody>
-              {% for leave in upcoming_leaves %}
-                <tr>
-                  <td><a href="{% url 'vacation:leave_request_detail' leave.pk %}">{{ leave.pk }}</a>
-                  </td>
-                  <td>{{ leave.start_date|date:"d E Y" }}</td>
-                  <td>{{ leave.end_date|date:"d E Y" }}</td>
-                  <td>{{ leave.leave_type }}</td>
-                  <td class="text-primary">
-                    {{ leave.number_of_days }}
-                  </td>
-                  <td>
-                    {% if leave.status == "approved" %}
-                      <label class="badge badge-success">{{ leave.status }}</label>
-                    {% elif leave.status == "pending" %}
-                      <label class="badge badge-warning">{{ leave.status }}</label>
-                    {% elif leave.status == "saved" %}
-                      <label class="badge badge-dark">{{ leave.status }}</label>
-                    {% elif leave.status == "rejected" %}
-                      <label class="badge badge-danger">{{ leave.status }}</label>
-                    {% endif %}
-                  </td>
-                  <td>
-                    <a href="{% url 'vacation:leave_request_detail' leave.pk %}"
-                       class="btn btn-rounded btn-outline-linkedin">Докладно</a>
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td><h4 class="text-muted mb-2">У Вас немає затверджених, запланованих відпусток.</h4></td>
-                </tr>
-              {% endfor %}
-              </tbody>
-            </table>
-            <a class="btn btn-outline-inverse-success btn-rounded btn-sm btn-icon-text mt-5"
-               href="{% url 'vacation:leave_request_create' %}">
-              <i class="mdi mdi-playlist-plus mdi-24px"></i> Створити нову заявку
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
+
   </div>
 {% endblock %}

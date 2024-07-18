@@ -45,7 +45,7 @@ class UserLeaveRequestMixin(LoginRequiredMixin):
         ).order_by("-created_at")
 
 
-class DashBoardView(UserLeaveRequestMixin, TemplateView):
+class DashBoardView(LoginRequiredMixin, TemplateView):
     """Dashboard view."""
 
     template_name = "vacation/dashboard.html"
@@ -72,6 +72,22 @@ class DashBoardView(UserLeaveRequestMixin, TemplateView):
             status=StatusRequestChoices.APPROVED,
         )
         context["currently_on_leave"] = currently_on_leave
+
+        # Current user on leave
+        current_user_on_leave = LeaveRequest.objects.filter(
+            employee=self.request.user,
+            start_date__lte=today,
+            end_date__gte=today,
+            status=StatusRequestChoices.APPROVED,
+        ).last()
+        context["current_user_on_leave"] = current_user_on_leave
+
+        # User's last vacation
+        user_last_vacation = LeaveRequest.objects.filter(
+            employee=self.request.user,
+            expired=False,
+        ).order_by("start_date").last()
+        context["user_last_vacation"] = user_last_vacation
 
         # Current duty
         duty_now = (
@@ -133,7 +149,7 @@ class LeaveRequestDetailView(UserLeaveRequestMixin, DetailView):
         leave_request = self.get_object()
         employee = leave_request.employee
         vacation_days_used = (
-                VacationUsed.objects.get(employee=employee).days or 0
+            VacationUsed.objects.get(employee=employee).days or 0
         )
         context["vacation_days_used"] = vacation_days_used
         return context
@@ -333,9 +349,9 @@ class LeaveRequestUserViewSet(viewsets.ModelViewSet):
 
     def perform_update(self, serializer):
         if (
-                "status" in serializer.validated_data
-                and serializer.validated_data["status"]
-                == StatusRequestChoices.PENDING
+            "status" in serializer.validated_data
+            and serializer.validated_data["status"]
+            == StatusRequestChoices.PENDING
         ):
             return Response(
                 {

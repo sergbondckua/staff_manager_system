@@ -83,10 +83,15 @@ class DashBoardView(LoginRequiredMixin, TemplateView):
         context["current_user_on_leave"] = current_user_on_leave
 
         # User's last vacation
-        user_last_vacation = LeaveRequest.objects.filter(
-            employee=self.request.user,
-            expired=False,
-        ).order_by("start_date").last()
+        user_last_vacation = (
+            LeaveRequest.objects.filter(
+                employee=self.request.user,
+                end_date__lte=today,
+                status=StatusRequestChoices.APPROVED,
+            )
+            .order_by("-end_date")
+            .first()
+        )
         context["user_last_vacation"] = user_last_vacation
 
         # Current duty
@@ -102,6 +107,7 @@ class DashBoardView(LoginRequiredMixin, TemplateView):
             LeaveRequest.objects.filter(
                 employee=self.request.user,
                 status=StatusRequestChoices.APPROVED,
+                expired=False,
             )
             .values(
                 "leave_type__title",
